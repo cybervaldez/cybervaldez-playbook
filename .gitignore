@@ -1,0 +1,39 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+.obsidian/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.eggs/
+*.egg-info/
+.pytest_cache/
+venv/
+.env
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Build outputs
+dist/
+build/
+*.log
+
+# Test artifacts
+tests/e2e-runs/
+/tmp/
+
+# Local configs
+.claude/settings.local.json

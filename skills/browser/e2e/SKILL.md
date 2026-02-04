@@ -1,0 +1,256 @@
+---
+name: e2e
+description: Orchestrate full e2e test run with visual verification. Cleans state, starts server, runs test phases, takes screenshots, and generates detailed report.
+---
+
+# E2E Test Orchestrator
+
+Full end-to-end test suite with visual verification via screenshots.
+
+## Quick Start
+
+```bash
+/e2e
+```
+
+## What It Does
+
+1. **Clean Slate**: Removes `{{OUTPUTS_PATH}}` for fresh state
+2. **Server Start**: Starts server with debug mode for fast testing
+3. **Run Test Phases**: Executes phases in sequence with screenshots
+4. **Visual Verification**: Takes screenshots at each checkpoint
+5. **Generate Report**: Produces detailed pass/fail analysis
+
+## Usage
+
+```bash
+# Run full e2e suite
+./{{TESTS_PATH}}/e2e-orchestrator.sh
+
+# Run single phase (for debugging)
+./{{TESTS_PATH}}/e2e-orchestrator.sh --phase startup
+./{{TESTS_PATH}}/e2e-orchestrator.sh --phase navigation
+./{{TESTS_PATH}}/e2e-orchestrator.sh --phase generation
+
+# Keep server running after tests (for debugging)
+./{{TESTS_PATH}}/e2e-orchestrator.sh --no-cleanup
+
+# Use different port
+./{{TESTS_PATH}}/e2e-orchestrator.sh --port 8085
+```
+
+## Test Phases
+
+| # | Phase | Screenshot | Pass Criteria |
+|---|-------|------------|---------------|
+| 1 | Setup | - | Clean outputs, server starts |
+| 2 | Startup | `01-startup-clean.png` | No JS errors, main UI visible |
+| 3 | Navigation | `02-navigation.png` | Content loads correctly |
+| 4 | Generation | `03-generation.png` | Generated content visible |
+| 5 | Post-Gen | `04-post-generation.png` | Counts and state updated |
+| 6 | Persistence | `05-persistence.png` | State survives page refresh |
+| 7 | Server Restart | `06-server-restart.png` | Data persists after server restart |
+
+## Output Structure
+
+```
+{{TESTS_PATH}}/e2e-runs/
+  {YYYYMMDD_HHMMSS}/
+    screenshots/
+      01-startup-clean.png
+      02-navigation.png
+      03-generation.png
+      04-post-generation.png
+      05-persistence.png
+      06-server-restart.png
+    report.md
+    server.log
+    server_restart.log
+```
+
+## Visual Verification Criteria
+
+| Phase | What to Check |
+|-------|---------------|
+| Startup | Main UI visible, no console errors, elements load |
+| Navigation | Content loads, parameters work |
+| Generation | Generated content appears in grid |
+| Post-Gen | Counts update, state changes visible |
+| Persistence | After page refresh, same state preserved |
+| Server Restart | After server stop/start, data still visible |
+
+## Starting Servers
+
+**IMPORTANT:** Always use the startup scripts, not raw python commands.
+
+```bash
+# Start server (default port {{SERVER_PORT}})
+{{SERVER_START}}
+```
+
+**Never use raw python commands** - the startup scripts handle venv activation, default flags, and port configuration.
+
+## Phase Details
+
+### Phase 1: Setup
+```bash
+# Clean outputs folder
+rm -rf {{OUTPUTS_PATH}}
+
+# Start server (use the startup script)
+{{SERVER_START}} &
+```
+
+### Phase 2: Startup
+```bash
+agent-browser open "http://localhost:{{SERVER_PORT}}/"
+sleep 3
+agent-browser screenshot "$RUN_DIR/screenshots/01-startup-clean.png"
+
+# Verify no JS errors
+errors=$(agent-browser errors)
+[ -z "$errors" ] || [ "$errors" = "[]" ]
+
+# Verify main UI visible
+agent-browser snapshot -c | grep -q "main-container"
+```
+
+### Phase 3: Navigation
+```bash
+agent-browser open "http://localhost:{{SERVER_PORT}}/?param=value"
+sleep 3
+agent-browser screenshot "$RUN_DIR/screenshots/02-navigation.png"
+
+# Verify content loaded
+agent-browser snapshot -c | grep -q "expected-content"
+
+# Verify state set
+agent-browser eval "window.state.param === 'value'"
+```
+
+### Phase 4: Generation
+```bash
+# Trigger generation via API
+curl -X POST "http://localhost:{{SERVER_PORT}}{{API_BASE}}/generate" \
+  -H "Content-Type: application/json" \
+  -d '{"param":"value"}'
+
+# Wait for generation
+sleep 15
+
+agent-browser reload
+sleep 3
+agent-browser screenshot "$RUN_DIR/screenshots/03-generation.png"
+
+# Verify content visible
+content_count=$(agent-browser eval "document.querySelectorAll('.generated-item').length")
+[ "$content_count" -gt 0 ]
+```
+
+### Phase 5: Post-Generation
+```bash
+agent-browser screenshot "$RUN_DIR/screenshots/04-post-generation.png"
+
+# Verify counts updated
+count_text=$(agent-browser eval "document.querySelector('.count-value')?.textContent")
+echo "$count_text" | grep -qE "[1-9][0-9]*"
+
+# Verify state updated
+item_count=$(agent-browser eval "parseInt(document.getElementById('items-count')?.textContent || '0')")
+[ "$item_count" -gt 0 ]
+```
+
+### Phase 6: Persistence
+```bash
+# Refresh and verify state persists
+agent-browser reload
+sleep 3
+agent-browser screenshot "$RUN_DIR/screenshots/05-persistence.png"
+
+# Re-verify counts
+item_count=$(agent-browser eval "parseInt(document.getElementById('items-count')?.textContent || '0')")
+[ "$item_count" -gt 0 ]
+```
+
+## Report Format
+
+```markdown
+# E2E Test Report - {timestamp}
+
+## Summary
+- Total Phases: 6
+- Passed: X
+- Failed: Y
+- Duration: Xm Ys
+
+## Phase Results
+
+### Phase 1: Setup - PASS
+- Cleaned outputs folder
+- Server started on port {{SERVER_PORT}}
+- Duration: 3s
+
+### Phase 2: Startup - PASS
+- Screenshot: 01-startup-clean.png
+- No JS errors
+- Main UI visible
+- Duration: 5s
+
+...
+
+## Screenshots
+- [01-startup-clean.png](screenshots/01-startup-clean.png)
+- [02-navigation.png](screenshots/02-navigation.png)
+- [03-generation.png](screenshots/03-generation.png)
+- [04-post-generation.png](screenshots/04-post-generation.png)
+- [05-persistence.png](screenshots/05-persistence.png)
+
+## Failures (if any)
+- Phase X: Error message
+- Suggested fix: ...
+```
+
+## Failure Analysis
+
+When a phase fails, the orchestrator:
+
+1. **Captures state**: Takes a failure screenshot
+2. **Diagnoses**: Checks console errors, network failures
+3. **Suggests**: Provides actionable fix suggestions
+
+Common failures:
+- **JS errors on startup**: Check browser console, likely module load issue
+- **Navigation fails**: Check API response
+- **Generation times out**: Check worker status, increase timeout
+- **Persistence fails**: Check localStorage/sessionStorage handling
+
+## Cleanup
+
+The orchestrator cleans up automatically:
+- Stops server process
+- Closes browser
+- Preserves test artifacts in `{{TESTS_PATH}}/e2e-runs/`
+
+Use `--no-cleanup` to keep server running for debugging.
+
+## Integration with CI
+
+```bash
+# Run and exit with proper code
+./{{TESTS_PATH}}/e2e-orchestrator.sh
+exit_code=$?
+
+# Check artifacts
+if [ $exit_code -ne 0 ]; then
+    cat {{TESTS_PATH}}/e2e-runs/latest/report.md
+fi
+
+exit $exit_code
+```
+
+## See Also
+
+- `/e2e-guard` - Test coverage for specific changes
+- `/e2e-investigate` - Failure investigation
+- `/agent-browser` - Browser automation commands
+- `{{TESTS_PATH}}/lib/test_utils.sh` - Shared test utilities
