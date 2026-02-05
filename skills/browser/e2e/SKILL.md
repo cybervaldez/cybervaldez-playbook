@@ -284,6 +284,12 @@ exit $exit_code
 - **Prerequisites** - Test files must exist; server must be running; `/e2e-guard` should have run
 - **Not suitable for** - CLI-only tools; API-only projects; headless backend services
 
+| Limitation | Next Step |
+|------------|-----------|
+| No test files | Run `/e2e-guard` to auto-generate tests |
+| Server not running | Run `{{SERVER_START}}` |
+| 3+ failures | **Mandatory:** Run `/e2e-investigate` before retrying |
+
 ## Circuit Breaker Protocol
 
 Repeated failures waste time. Follow this escalation:

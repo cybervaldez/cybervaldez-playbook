@@ -564,6 +564,13 @@ Optional improvements:
 
 ---
 
+## Limitations
+
+| Limitation | Next Step |
+|------------|-----------|
+| No preview files | Run `/ui-planner` to generate previews |
+| No styleguide | Run `/ui-planner` or create `webui/styleguide.css` manually |
+
 ## When NOT to Run This Skill
 
 - Before `/ui-planner` has generated output

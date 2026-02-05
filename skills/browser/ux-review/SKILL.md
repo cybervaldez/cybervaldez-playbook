@@ -652,6 +652,11 @@ When gaps or improvements are identified, use `/create-task` to implement the fi
 - **Not suitable for** - CLI-only projects; API-only projects; pre-implementation design (use `/ui-planner`)
 - **Browser required** - Needs `agent-browser` for screenshots and verification
 
+| Limitation | Next Step |
+|------------|-----------|
+| Server not running | Run `{{SERVER_START}}` and wait for ready message |
+| No git diff | Run `git add .` to stage changes, then retry |
+
 ## When NOT to Use
 
 Skip `/ux-review` when:

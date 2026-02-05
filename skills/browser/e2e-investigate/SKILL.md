@@ -434,6 +434,10 @@ The output from `/e2e-investigate` is designed to feed directly into `/create-ta
 - **Not suitable for** - Successful test runs; test authoring (use `/e2e-guard` for that)
 - **Artifact dependency** - Screenshots and logs must exist; if artifacts are missing, re-run `/e2e` first
 
+| Limitation | Next Step |
+|------------|-----------|
+| No artifacts | Run `/e2e` first to generate failure artifacts |
+
 ## See Also
 
 - `/e2e` - Run the full e2e test suite

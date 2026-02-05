@@ -843,22 +843,14 @@ agent-browser close
 
 Understanding which skills depend on others helps avoid errors and ensures proper workflow.
 
-| Skill | Hard Prerequisites | Soft Prerequisites |
-|-------|-------------------|-------------------|
-| `/ui-review` | Preview files exist | `/ui-planner` ran |
-| `/ux-review` | Server running, implementation exists | `/create-task` completed |
-| `/e2e` | Test files exist, server running | `/e2e-guard` ran |
-| `/e2e-investigate` | `/e2e` failed with artifacts | Failure screenshots exist |
-| `/coding-guard` | Git diff available (staged or committed) | `/create-task` ran |
-| `/e2e-guard` | Git diff available | `/create-task` ran |
-| `/cli-first` | Source files exist | Recent changes to audit |
-
-**What happens without prerequisites:**
-- `/ui-review` without preview files → Error: "No preview files found"
-- `/ux-review` without server → Error: "Server not running"
-- `/e2e` without tests → Error: "No test files found"
-- `/e2e-investigate` without failures → Nothing to investigate
-- `/coding-guard` without git history → Use `--cached` for staged changes
+| Skill | Hard Prerequisites | What Happens | **Next Step** |
+|-------|-------------------|--------------|---------------|
+| `/ui-review` | Preview files exist | Error: "No preview files found" | **Run `/ui-planner` first** |
+| `/ux-review` | Server running | Error: "Server not running" | **Run `{{SERVER_START}}`** |
+| `/e2e` | Test files exist, server running | Error: "No test files found" | **Run `/e2e-guard` to generate tests** |
+| `/e2e-investigate` | `/e2e` failed with artifacts | Nothing to investigate | **Run `/e2e` first** |
+| `/coding-guard` | Git diff available | Uses `--cached` for staged | **Run `git add .` then retry** |
+| `/e2e-guard` | Git diff available | Uses `--cached` for staged | **Run `git add .` then retry** |
 
 ---
 
@@ -974,11 +966,14 @@ git config --global user.name "Your Name"
 
 All browser-based skills require a running server:
 ```bash
-# Start server first
+# Start server
 {{SERVER_START}}
 
-# Wait for it to be ready
-curl -sf http://localhost:{{SERVER_PORT}} && echo "Ready"
+# Wait for ready (check every 2s, timeout 30s)
+for i in {1..15}; do
+  curl -sf http://localhost:{{SERVER_PORT}} && echo "✓ Server ready" && break
+  sleep 2
+done
 
 # Then run skill
 /ux-review

@@ -75,17 +75,17 @@ Quick reference for all playbook skills. Use this to find the right skill for yo
 
 ## Quick Decision Guide
 
-| I want to... | Use |
-|--------------|-----|
-| Plan a new feature | `/ux-planner` |
-| Design how it looks | `/ui-planner` → `/ui-review` |
-| Build it | `/create-task` |
-| Check my code | `/coding-guard` + `/cli-first` |
-| Verify it works | `/ux-review` + `/e2e-guard` → `/e2e` |
-| Fix failing tests | `/e2e-investigate` → `/create-task` |
-| Use a new library | `/research` first |
-| Get strategic advice | `/team` |
-| Get user feedback | `/kaizen` |
+| I want to... | Use | **If it fails...** |
+|--------------|-----|-------------------|
+| Plan a new feature | `/ux-planner` | Check `/research` for new tech |
+| Design how it looks | `/ui-planner` → `/ui-review` | Re-run `/ui-planner` if no previews |
+| Build it | `/create-task` | Start server first |
+| Check my code | `/coding-guard` + `/cli-first` | `git add .` if no commits |
+| Verify it works | `/ux-review` + `/e2e-guard` → `/e2e` | Start server, check test files |
+| Fix failing tests | `/e2e-investigate` → `/create-task` | Run `/e2e` first for artifacts |
+| Use a new library | `/research` first | Check internet connection |
+| Get strategic advice | `/team` | N/A |
+| Get user feedback | `/kaizen` | N/A |
 
 ---
 
