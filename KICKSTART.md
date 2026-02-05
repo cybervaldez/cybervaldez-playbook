@@ -2,7 +2,7 @@
 
 > For founders and developers who want to ship fast without accumulating debt.
 >
-> **What you'll get:** 11 skills guide the AI through planning, building, and testing. Not sure what to build? AI discovers trending ideas to spark your direction. No manual setup—everything configured automatically.
+> **What you'll get:** 14 skills guide the AI through planning, building, testing, and consultation. Not sure what to build? AI discovers trending ideas to spark your direction. No manual setup—everything configured automatically.
 
 ---
 
@@ -1041,15 +1041,19 @@ This includes:
 - create-task (implementation workflow)
 - coding-guard (code quality)
 - cli-first (observability)
+- kaizen (diverse persona feedback)
+- team (expert persona collaboration)
 
 **Step 5.2: Copy shared references and research skill:**
 ```bash
 cp skills/TECH_CONTEXT.md .claude/skills/
+cp skills/SKILL_INDEX.md .claude/skills/
 cp -r skills/research .claude/skills/
 ```
 
 This includes:
 - TECH_CONTEXT.md (domain classification & skill concern matrix)
+- SKILL_INDEX.md (skill discovery index — run `/help` or read this to discover all 14 skills)
 - research (technology research skill)
 
 **Step 5.3: Create techs/ directory for project-specific research:**
@@ -1079,11 +1083,11 @@ cp -r skills/browser/* .claude/skills/
 ```
 
 This includes:
-- ux-review
-- e2e-guard
-- e2e
-- e2e-investigate
-- agent-browser
+- ux-review (visual UX verification via screenshots)
+- e2e-guard (auto-generate missing E2E tests)
+- e2e (full test orchestration)
+- e2e-investigate (root cause analysis for failures)
+- agent-browser (browser automation utility)
 
 **After copying, replace these placeholders in all skill .md files:**
 
@@ -1262,6 +1266,104 @@ Run /research {tech} in the playbook to add technology-specific reference docs.
 Remember: AI is AI, and AI hallucinates.
 Always verify generated code and outputs before shipping.
 ```
+
+---
+
+## Troubleshooting & Edge Cases
+
+### Partial Kickstart (Failed Midway)
+
+If kickstart fails partway through:
+
+1. **Check what was created:**
+   ```bash
+   ls -la .claude/skills/ 2>/dev/null  # Skills installed?
+   ls playbook/ 2>/dev/null            # Playbook archived?
+   git log --oneline -1 2>/dev/null    # Git initialized?
+   ```
+
+2. **Resume from failure point:**
+   - If skills missing → Re-run step 5 (copy skills)
+   - If playbook not archived → Re-run step 7
+   - If git not initialized → Re-run step 6
+
+3. **Start fresh (nuclear option):**
+   ```bash
+   rm -rf .claude playbook .git
+   # Re-run kickstart from step 1
+   ```
+
+### Port Conflicts
+
+If default port is already in use:
+
+```bash
+# Check if port is in use
+lsof -i :8080  # or :3000 for nextjs, :5173 for react
+
+# Options:
+# 1. Kill the process using the port
+# 2. Change SERVER_PORT during kickstart
+# 3. Edit .claude/PROJECT_CONFIG.md after kickstart
+```
+
+**Post-kickstart port change:**
+```bash
+# Update all skill files
+sed -i 's/{{SERVER_PORT}}/8081/g' .claude/skills/**/SKILL.md
+# Update PROJECT_CONFIG.md manually
+```
+
+### Missing Python venv
+
+If `./venv/bin/python` doesn't exist:
+
+```bash
+# Create venv
+python3 -m venv venv
+
+# Or use system Python (update during kickstart)
+# VENV_PYTHON will be set to "python3" instead
+```
+
+### Wrong Python Version
+
+Requires Python 3.10+:
+```bash
+python3 --version  # Check version
+
+# If too old:
+# 1. Install Python 3.10+ via pyenv or system package manager
+# 2. Update VENV_PYTHON to point to correct Python
+```
+
+### Node.js Not Installed (for nextjs/react)
+
+```bash
+node --version  # Should be 18+
+
+# If not installed:
+# 1. Install from nodejs.org
+# 2. Or use nvm: nvm install 18 && nvm use 18
+```
+
+### Project Type Doesn't Match Options
+
+If your project isn't `python-cli-with-webui`, `nextjs-with-cli`, or `react-with-cli`:
+
+1. **Choose closest match** and customize after
+2. **Or add custom type** to KICKSTART.md:
+   - Add detection logic in Step 1
+   - Add file templates in Step 4
+   - Add placeholder defaults in Step 3
+
+### Git Already Initialized
+
+Kickstart removes existing `.git` and creates fresh history. If you need to preserve history:
+
+1. **Before kickstart:** Backup `.git` folder
+2. **After kickstart:** Restore `.git` and commit changes
+3. **Or skip step 6:** Comment out git re-init if preserving history
 
 ---
 
