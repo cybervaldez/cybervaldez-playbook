@@ -1,6 +1,17 @@
 ---
 name: ui-review
 description: Visual design quality guard that detects AI slop patterns. Run after /ui-planner to identify generic aesthetics and get actionable refinement suggestions. Enables rapid iteration toward distinctive design.
+argument-hint: [preview file path]
+---
+
+## TL;DR
+
+**What:** AI slop detector. Catches generic design patterns, enforces styleguide compliance.
+
+**When:** After `/ui-planner` generates previews, before `/create-task`.
+
+**Output:** Slop audit with scores. PASS → ready for implementation. NEEDS ITERATION → fix and re-run.
+
 ---
 
 ## Tech Context Detection

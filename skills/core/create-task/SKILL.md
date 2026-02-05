@@ -5,6 +5,46 @@ argument-hint: <task description>
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
+## TL;DR
+
+**What:** Implement features with built-in E2E tests. No screenshots, no manual verification.
+
+**When:** After `/ux-planner` defines flows, or directly for well-defined tasks.
+
+**Output:** Code changes + test files. Triggers parallel verification gates.
+
+---
+
+## Table of Contents
+
+- [Tech Context Detection](#tech-context-detection)
+- [Core Principles](#core-principles-must-follow)
+- [Workflow](#workflow)
+  - [1. Analyze the Task](#1-analyze-the-task)
+  - [2. Discover Context](#2-discover-context)
+  - [3. Plan the Implementation](#3-plan-the-implementation)
+  - [4. Implement the Task](#4-implement-the-task)
+  - [5. Create/Update E2E Test](#5-createupdate-e2e-test)
+  - [6. Run the E2E Test](#6-run-the-e2e-test-required)
+  - [7. Report Results](#7-report-results)
+- [Shared Test Library](#shared-test-library-tests_pathlibtestutilssh)
+- [Testing Rules](#testing-rules)
+- [Anti-Patterns to AVOID](#anti-patterns-to-avoid)
+- [Required Patterns](#required-patterns)
+- [Quick Reference](#quick-reference)
+- [Timing Patterns](#timing-patterns)
+- [Error Handling Patterns](#error-handling-patterns)
+- [Project Structure](#project-structure)
+- [Verification Pattern Rankings](#verification-pattern-rankings)
+- [Troubleshooting](#troubleshooting)
+- [Superior Patterns Summary](#superior-patterns-summary)
+- [Post-Implementation](#post-implementation)
+- [Limitations](#limitations)
+- [See Also](#see-also)
+- [Advanced: API Configuration Endpoint](#advanced-api-configuration-endpoint)
+
+---
+
 ## Tech Context Detection
 
 Before executing, check for technology-specific patterns:
@@ -481,6 +521,14 @@ After completing the task, consider running:
 - `/coding-guard` - Check for coding convention violations
 - `/e2e-guard` - Ensure test coverage exists
 - `/ux-review` - Verify UX from user perspective
+
+## Limitations
+
+- **Modifies files** - Creates and edits source code and test files
+- **Pipeline position** - Central implementation skill; receives input from `/ux-planner` or `/ui-planner`
+- **Prerequisites** - Server should be running for test execution; project structure must exist
+- **Not suitable for** - Pure research tasks; strategic discussions (use `/team` instead)
+- **Test execution** - Requires running server on configured port; tests will fail if server is down
 
 ## See Also
 

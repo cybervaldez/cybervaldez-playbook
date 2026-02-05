@@ -1,6 +1,17 @@
 ---
 name: ux-planner
 description: Conversational UX advisor for web UI planning. Use for UX questions, user flow design, interaction patterns, or to analyze UX review findings. Highly interactive - asks clarifying questions.
+argument-hint: <UX question or feature to plan>
+---
+
+## TL;DR
+
+**What:** Conversational UX advisor. Asks questions, presents 2-3 options with tradeoffs.
+
+**When:** Before building features. Entry point for new functionality.
+
+**Output:** UX recommendation with interaction flow diagrams, ready for `/ui-planner` or `/create-task`.
+
 ---
 
 ## Tech Context Detection
@@ -421,3 +432,17 @@ Skill: Good constraints. For desktop-only with moderate list sizes:
 For 5-20 items on desktop, **Option A** gives native feel
 without dependencies. Ready for /create-task?
 ```
+
+## Limitations
+
+- **Read-only** - Provides recommendations but doesn't modify files
+- **Pipeline position** - Entry point for features; precedes `/ui-planner` and `/create-task`
+- **Prerequisites** - None; can start from scratch or analyze existing UX
+- **Not suitable for** - Implementation tasks (use `/create-task`); visual design (use `/ui-planner`)
+
+## See Also
+
+- `/ui-planner` - Visual design advisor (run after UX flows are defined)
+- `/create-task` - Implementation with built-in testing
+- `/ux-review` - Post-implementation UX verification
+- `references/ux-patterns.md` - UX laws, principles, and patterns database

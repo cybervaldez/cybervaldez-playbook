@@ -4,6 +4,16 @@ description: Summon expert personas for advice and document generation. Use for 
 argument-hint: [experts] <question or request>
 ---
 
+## TL;DR
+
+**What:** Expert personas (Marketing, UX, Product, Technical, etc.) give strategic advice.
+
+**When:** Strategic questions, positioning, pricing, architecture decisions.
+
+**Output:** Multi-expert panel discussion with synthesis and actionable takeaways.
+
+---
+
 # Expert Team Consultation
 
 Summon expert personas for conversational advice and structured document generation. A single expert is just a "team of 1" - same mechanics, variable participants.
@@ -424,6 +434,51 @@ Skill: Assembling Marketing, Business, and Product experts for pitch deck.
 
 ---
 
+## Acting on Feedback
+
+While `/team` is pipeline-isolated, you can manually pipe its output to implementation:
+
+### Converting Expert Advice to Tasks
+
+**After getting strategic advice:**
+
+```
+/team marketing, product "should we add a free tier?"
+
+# If experts recommend action, use /create-task:
+/create-task Implement free tier based on team recommendation:
+- Add "Free" pricing tier with limited features
+- Create upgrade prompts at feature gates
+- Track conversion from free to paid
+```
+
+### Output Format for Handoff
+
+When you want actionable output, ask for it explicitly:
+
+```
+/team ux "review this form" --actionable
+
+# Skill will format output as:
+## Actionable Items for /create-task
+1. [High] Add inline validation - user confusion on submit
+2. [Medium] Reorder fields - put email before name
+3. [Low] Add password strength indicator
+```
+
+### Decision Tree: /team vs /create-task
+
+```
+Strategic question ("should we...?")     → /team
+Implementation question ("how do I...?") → /create-task
+UX planning ("what's the best flow?")    → /ux-planner
+```
+
+---
+
 ## See Also
 
 - `references/expert-personas.md` - Detailed persona definitions and interaction patterns
+- `/kaizen` - User perspective feedback (regular people, not experts)
+- `/ux-planner` - For detailed interaction flow planning
+- `/create-task` - For implementing recommendations

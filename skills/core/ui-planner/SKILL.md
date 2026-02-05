@@ -1,6 +1,17 @@
 ---
 name: ui-planner
 description: Visual design advisor with interactive ASCII gallery and HTML preview generation. Use for establishing visual identity, typography, color systems, and layout patterns. Generates live previews for iteration.
+argument-hint: [design context or feature description]
+---
+
+## TL;DR
+
+**What:** Interactive visual design advisor. ASCII galleries → user selects → HTML preview generated.
+
+**When:** After `/ux-planner` defines flows, before implementation.
+
+**Output:** Preview HTML files + styleguide.css with design tokens.
+
 ---
 
 ## Tech Context Detection
@@ -695,6 +706,29 @@ Generating preview that shows:
 ```
 
 ---
+
+## Limitations
+
+- **Modifies files** - Creates preview HTML files and styleguide CSS
+- **Pipeline position** - Follows `/ux-planner`; precedes `/ui-review` and `/create-task`
+- **Prerequisites** - Works best after `/ux-planner` defines interaction flows
+- **Not suitable for** - CLI-only tools; API-only projects; non-visual features
+
+## When NOT to Use
+
+Skip `/ui-planner` when:
+- **Backend-only feature** - No UI components affected (use `/create-task` directly)
+- **Quick bug fix** - Visual design already established
+- **API endpoint changes** - No user-facing visual impact
+- **Styleguide already exists** - Minor updates don't need full planning
+- **Prototype/throwaway code** - Speed over polish is acceptable
+
+## See Also
+
+- `/ux-planner` - Interaction flows and UX planning (run before this)
+- `/ui-review` - AI slop detection and design quality guard (run after this)
+- `/create-task` - Implementation with design tokens applied
+- `references/ui-patterns.md` - Design token hierarchy, typography, color theory
 
 ## UX Patterns Reference
 

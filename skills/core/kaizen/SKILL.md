@@ -4,6 +4,16 @@ description: Gather diverse feedback from fictional personas representing real u
 argument-hint: [category] <what to review>
 ---
 
+## TL;DR
+
+**What:** Diverse user personas (Grandma Dorothy, colorblind Marcus, intern Tommy) give real-world reactions.
+
+**When:** User perspective questions, accessibility checks, usability feedback.
+
+**Output:** Kaizen Board with issues by severity, bright spots, and actionable fixes.
+
+---
+
 # Kaizen Feedback
 
 Gather diverse feedback from fictional personas representing real users, employees, and stakeholders at all levels. Inspired by the Kaizen philosophy where everyone's perspective matters - from the intern to the CEO, from the power user to someone's grandmother.
@@ -369,8 +379,65 @@ User: /kaizen stakeholders "review the new pricing page"
 
 ---
 
+## Acting on Feedback
+
+While `/kaizen` is pipeline-isolated, you can convert its output to actionable tasks:
+
+### Converting Persona Feedback to Tasks
+
+**Step 1: Prioritize by impact and severity**
+
+From the Kaizen Board Summary:
+```
+| Category | Count | Top Action |
+|----------|-------|------------|
+| Accessibility | 2 issues | Add alt text, text labels for indicators |
+| Usability | 3 concerns | Clarify jargon, add onboarding, surface key info |
+```
+
+**Step 2: Convert to /create-task input**
+
+```
+/create-task Fix accessibility issues from kaizen review:
+- Add alt text to social login buttons (Elena's feedback)
+- Add text labels to password strength indicator (Marcus's feedback)
+```
+
+### Handling Common Feedback Types
+
+| Persona Feedback Type | Action |
+|-----------------------|--------|
+| **Accessibility** (Marcus, Elena) | `/create-task` with WCAG fixes |
+| **Clarity** (Grandma Dorothy) | Review copy, simplify language |
+| **Trust** (Skeptical Sarah) | Add privacy links, security badges |
+| **Internal** (Support, Sales) | Document FAQ, add help text |
+
+### Output Format for Handoff
+
+Request actionable output explicitly:
+
+```
+/kaizen accessibility "review form" --prioritized
+
+# Skill will format as:
+## Priority Fixes for /create-task
+
+### P0 - Critical (Blocking)
+- [ ] Add aria-labels to form inputs (Elena)
+- [ ] Fix color contrast on error messages (Marcus)
+
+### P1 - High (Should fix)
+- [ ] Increase touch target size (Priya)
+
+### P2 - Medium (Nice to have)
+- [ ] Add visible focus states
+```
+
+---
+
 ## See Also
 
 - `references/persona-roster.md` - Full persona definitions, voices, and example feedback
 - `/team` - Expert professional consultation (strategic advice)
 - `/ui-review` - Visual design quality guard (AI slop detection)
+- `/create-task` - For implementing recommended fixes

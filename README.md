@@ -47,7 +47,7 @@ Kickstart a new project using KICKSTART.md
 The AI will:
 - Create a minimal welcome page scaffold
 - Search for trending ideas to inspire your first feature
-- Install all 9 skills to `.claude/skills/` (or `.gemini/skills/`)
+- Install all 14 skills to `.claude/skills/` (or `.gemini/skills/`)
 - Configure everything for your project
 - Archive KICKSTART.md when done
 
@@ -55,6 +55,48 @@ The AI will:
 ```
 /ux-planner "I want to build [your idea]"
 ```
+
+---
+
+## Start Here: Recommended Reading Order
+
+New to the playbook? Follow this path:
+
+### 1. Understand the Philosophy (5 min)
+- [The Origin Story](#the-origin-story) - Why these patterns exist
+- [The Philosophy](#the-philosophy) - Forced pauses and quality gates
+- [CLI-First = AI-First Debugging](#cli-first--ai-first-debugging) - Why text over screenshots
+
+### 2. Learn the Core Skills (10 min)
+- [Skills Reference](#skills-reference) - Overview of all 13 skills
+- [The Execution Flow](#the-execution-flow) - Visual pipeline diagram
+- [Skill Prerequisite Matrix](#skill-prerequisite-matrix) - What depends on what
+- [SKILL_INDEX.md](skills/SKILL_INDEX.md) - Quick reference for finding skills
+
+### 3. First Feature Workflow
+```
+/ux-planner "I want to build [your idea]"   # Plan the UX
+    ↓
+/ui-planner                                  # Design the visuals (optional)
+    ↓
+/create-task "Implement [feature]"           # Build it
+    ↓
+/coding-guard + /cli-first + /ux-review      # Quality gates (parallel)
+    ↓
+/e2e                                         # Verify it works
+```
+
+### 4. When Things Go Wrong
+- [Error Recovery Guide](#error-recovery-guide) - What to do when skills fail
+- `/e2e-investigate` - Debug failing tests
+- [Project Type Compatibility Matrix](#project-type-compatibility-matrix) - Which skills work for your project
+
+### 5. Deep Dives (As Needed)
+- [Technology Research](#technology-research) - Make skills tech-aware
+- [The War on Dirty Data](#the-war-on-dirty-data) - Why explicit failures matter
+- [Design for Greppability](#design-for-greppability) - Naming conventions
+
+---
 
 ### Manual Installation (Alternative)
 
@@ -736,6 +778,33 @@ These skills provide feedback and advice but don't connect to the pipeline. Use 
 - `/team` for strategic questions: "How should I position this feature?" "Is my pricing strategy sound?"
 - `/kaizen` for user perspective: "Will my grandmother understand this?" "Can a colorblind user see my errors?"
 
+### /team vs /kaizen Decision Tree
+
+```
+                    ┌─────────────────────────────┐
+                    │   What kind of feedback?    │
+                    └─────────────┬───────────────┘
+                                  │
+              ┌───────────────────┼───────────────────┐
+              │                   │                   │
+              v                   v                   v
+      Expert opinion?     User perspective?    Accessibility?
+              │                   │                   │
+              v                   v                   v
+           /team              /kaizen             /kaizen
+```
+
+| Question Type | Use | Example Personas |
+|---------------|-----|------------------|
+| Pricing strategy | `/team` | Business, Marketing |
+| Feature prioritization | `/team` | Product, Technical |
+| "Will this confuse users?" | `/kaizen` | Grandma Dorothy, Frustrated Frank |
+| "Can colorblind users use this?" | `/kaizen` | Marcus (colorblind) |
+| "How should we position this?" | `/team` | Marketing, Content |
+| "Is this form usable?" | `/kaizen` | Grandma Dorothy, Priya (motor) |
+| "Is this architecture scalable?" | `/team` | Technical |
+| "What do stakeholders think?" | `/kaizen internal` | Tommy (intern), Sales, Support |
+
 ### Utility Skills
 
 | Skill | Purpose |
@@ -766,6 +835,153 @@ agent-browser snapshot -i          # Interactive elements with refs
 agent-browser click @e1            # Click by reference
 agent-browser eval "document.title" # Execute JS
 agent-browser close
+```
+
+---
+
+## Skill Prerequisite Matrix
+
+Understanding which skills depend on others helps avoid errors and ensures proper workflow.
+
+| Skill | Hard Prerequisites | Soft Prerequisites |
+|-------|-------------------|-------------------|
+| `/ui-review` | Preview files exist | `/ui-planner` ran |
+| `/ux-review` | Server running, implementation exists | `/create-task` completed |
+| `/e2e` | Test files exist, server running | `/e2e-guard` ran |
+| `/e2e-investigate` | `/e2e` failed with artifacts | Failure screenshots exist |
+| `/coding-guard` | Git diff available (staged or committed) | `/create-task` ran |
+| `/e2e-guard` | Git diff available | `/create-task` ran |
+| `/cli-first` | Source files exist | Recent changes to audit |
+
+**What happens without prerequisites:**
+- `/ui-review` without preview files → Error: "No preview files found"
+- `/ux-review` without server → Error: "Server not running"
+- `/e2e` without tests → Error: "No test files found"
+- `/e2e-investigate` without failures → Nothing to investigate
+- `/coding-guard` without git history → Use `--cached` for staged changes
+
+---
+
+## Project Type Compatibility Matrix
+
+Not all skills apply to all project types. Browser-based skills require UI.
+
+| Skill | python-cli-with-webui | nextjs-with-cli | react-with-cli | CLI-only | API-only |
+|-------|----------------------|-----------------|----------------|----------|----------|
+| `/ux-planner` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `/ui-planner` | ✓ | ✓ | ✓ | ✗ | ✗ |
+| `/ui-review` | ✓ | ✓ | ✓ | ✗ | ✗ |
+| `/create-task` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `/coding-guard` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `/cli-first` | ✓ | ✓ | ✓ | ✓ | ✗ |
+| `/ux-review` | ✓ | ✓ | ✓ | ✗ | ✗ |
+| `/e2e-guard` | ✓ | ✓ | ✓ | Partial | Partial |
+| `/e2e` | ✓ | ✓ | ✓ | ✗ | ✗ |
+| `/e2e-investigate` | ✓ | ✓ | ✓ | ✗ | ✗ |
+| `/research` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `/team` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `/kaizen` | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+**Notes:**
+- **CLI-only**: Projects without web UI (e.g., command-line tools)
+- **API-only**: Backend services with no frontend
+- **Partial**: `/e2e-guard` can generate API tests via `curl` but not browser tests
+
+---
+
+## Error Recovery Guide
+
+What to do when skills fail or find issues.
+
+### /e2e Fails Repeatedly
+
+| Failure Count | Action |
+|---------------|--------|
+| 1-2 failures | Fix the issue, re-run `/e2e` |
+| 3+ failures | Stop retrying. Run `/e2e-investigate` for root cause analysis |
+| Flaky tests | Check for timing issues (insufficient `sleep`), race conditions |
+
+**Circuit breaker**: If `/e2e` fails 3+ times on the same test, `/e2e-investigate` is mandatory before continuing.
+
+### /coding-guard Finds Issues
+
+```
+/coding-guard finds violations
+       │
+       v
+┌──────────────────────────────────────┐
+│ Review each violation in report      │
+│                                      │
+│ For each issue:                      │
+│   1. Understand WHY it's flagged     │
+│   2. Fix the code                    │
+│   3. Stage the fix (git add)         │
+│   4. Re-run /coding-guard            │
+│                                      │
+│ Loop until: No violations remain     │
+└──────────────────────────────────────┘
+```
+
+### /ui-review Finds AI Slop
+
+```
+/ui-review → NEEDS ITERATION
+       │
+       v
+Option A: Fix in preview file
+   → Edit webui/previews/preview-*.html directly
+   → Re-run /ui-review
+
+Option B: Regenerate with /ui-planner
+   → /ui-planner with specific feedback
+   → e.g., "regenerate with sharper corners"
+```
+
+### Preview Files Deleted
+
+If preview files are deleted before `/ui-review`:
+1. Run `/ui-planner` again to regenerate
+2. Or manually create preview file based on styleguide
+
+### Git History Empty (First Commit)
+
+For `/coding-guard` or `/e2e-guard` on a new repo:
+```bash
+# Use staged changes instead of committed diff
+git add .
+/coding-guard  # Will use --cached flag automatically
+```
+
+### Git State Assumptions
+
+Skills that use `git diff` handle various states:
+
+| Git State | What Happens |
+|-----------|--------------|
+| Normal (has commits + changes) | Uses `git diff HEAD` |
+| First commit ever | Uses `git diff --cached` (staged files) |
+| Clean working tree | Nothing to audit - immediate success |
+| No git repo | Error with instructions to `git init` |
+| Untracked files only | Stage first with `git add`, then run skill |
+
+**If git is not configured:**
+```bash
+git config --global user.email "you@example.com"
+git config --global user.name "Your Name"
+```
+
+### Server Not Running
+
+All browser-based skills require a running server:
+```bash
+# Start server first
+{{SERVER_START}}
+
+# Wait for it to be ready
+curl -sf http://localhost:{{SERVER_PORT}} && echo "Ready"
+
+# Then run skill
+/ux-review
 ```
 
 ---
@@ -1088,7 +1304,7 @@ Using KICKSTART.md automatically:
 
 After kickstart completes, check:
 - `.claude/PROJECT_CONFIG.md` - Your configured values
-- `.claude/skills/` - All 9 skills installed and configured
+- `.claude/skills/` - All 14 skills installed and configured
 
 ### Manual Customization
 
@@ -1143,6 +1359,8 @@ See `KICKSTART.md` "Post-Kickstart: Optional Customizations" section for customi
 | `skills/core/ui-review/references/slop-research.md` | AI slop research methodology and detection patterns |
 | `skills/core/create-task/references/testing-conventions.md` | Testing patterns and best practices |
 | `skills/core/cli-first/references/cli-patterns.md` | Token cost table and universal CLI-first patterns |
+| `skills/core/team/references/expert-personas.md` | Expert persona definitions and interaction patterns |
+| `skills/core/kaizen/references/persona-roster.md` | Diverse user persona definitions and feedback patterns |
 
 ### What's Universal
 

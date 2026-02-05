@@ -1,6 +1,17 @@
 ---
 name: e2e
 description: Orchestrate full e2e test run with visual verification. Cleans state, starts server, runs test phases, takes screenshots, and generates detailed report.
+argument-hint: [--phase <name> | --port <number> | --no-cleanup]
+---
+
+## TL;DR
+
+**What:** Full E2E test orchestration with screenshots. Clean state → run tests → generate report.
+
+**When:** Final verification gate after all parallel guards pass.
+
+**Output:** Test report in `{{TESTS_PATH}}/e2e-runs/` with screenshots and pass/fail analysis.
+
 ---
 
 ## Tech Context Detection
@@ -265,6 +276,44 @@ fi
 
 exit $exit_code
 ```
+
+## Limitations
+
+- **Requires browser** - Needs `agent-browser` installed and functional
+- **Pipeline position** - Final verification gate; runs after all parallel guards pass
+- **Prerequisites** - Test files must exist; server must be running; `/e2e-guard` should have run
+- **Not suitable for** - CLI-only tools; API-only projects; headless backend services
+
+## Circuit Breaker Protocol
+
+Repeated failures waste time. Follow this escalation:
+
+| Attempt | Action |
+|---------|--------|
+| 1st failure | Review error, make fix, re-run `/e2e` |
+| 2nd failure | Review more carefully, check if same test |
+| 3rd failure | **STOP.** Run `/e2e-investigate` |
+| After investigation | Fix with `/create-task`, then `/e2e` |
+
+### Why This Matters
+
+```
+WITHOUT CIRCUIT BREAKER:
+/e2e fail → retry → fail → retry → fail → retry → frustration
+
+WITH CIRCUIT BREAKER:
+/e2e fail → retry → fail → retry → fail → /e2e-investigate → root cause → fix → /e2e pass
+```
+
+### Flaky Test Detection
+
+If a test passes sometimes and fails others:
+1. Don't keep retrying hoping it passes
+2. Run `/e2e-investigate` to identify:
+   - Timing issues (insufficient `sleep`)
+   - Race conditions
+   - State pollution between tests
+   - External dependencies
 
 ## See Also
 

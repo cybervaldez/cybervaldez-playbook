@@ -3,6 +3,16 @@ name: e2e-investigate
 description: Investigate e2e test failures, diagnose root causes, and generate actionable tasks for /create-task.
 ---
 
+## TL;DR
+
+**What:** Root cause analysis for `/e2e` failures. Reads artifacts, diagnoses issues.
+
+**When:** After `/e2e` fails. Required after 3+ consecutive failures.
+
+**Output:** Task description ready for `/create-task` with root cause and suggested fix.
+
+---
+
 ## Tech Context Detection
 
 Before investigating, check for technology-specific failure patterns:
@@ -26,6 +36,28 @@ Before investigating, check for technology-specific failure patterns:
 Analyze failing `/e2e` test results, investigate root causes, and produce actionable task descriptions ready for `/create-task`.
 
 **Workflow:** `/e2e` (fails) -> `/e2e-investigate` -> `/create-task` (fix)
+
+## When to Trigger
+
+| Scenario | Action |
+|----------|--------|
+| `/e2e` fails once | Review failure, attempt quick fix, re-run `/e2e` |
+| `/e2e` fails twice | Check if same test; consider `/e2e-investigate` |
+| `/e2e` fails 3+ times | **Mandatory:** Run `/e2e-investigate` before more retries |
+| Flaky test (passes sometimes) | Run `/e2e-investigate` to identify timing issues |
+| New failure after code change | Quick fix first; `/e2e-investigate` if unclear |
+
+### Invocation
+
+```bash
+# Automatic (reads latest e2e run)
+/e2e-investigate
+
+# After specific run
+/e2e-investigate {{TESTS_PATH}}/e2e-runs/20240115_143022/
+```
+
+The skill automatically reads `{{TESTS_PATH}}/e2e-runs/latest/` if no path is specified.
 
 ## Quick Start
 
@@ -393,6 +425,14 @@ The output from `/e2e-investigate` is designed to feed directly into `/create-ta
 ```
 
 **Never use raw python commands** - the startup scripts handle venv activation, default flags, and port configuration.
+
+## Limitations
+
+- **Read-only** - Investigates failures but doesn't fix them; outputs to `/create-task`
+- **Pipeline position** - Triggered by `/e2e` failures; feeds into `/create-task` for fixes
+- **Prerequisites** - Requires `/e2e` to have run and failed; needs failure artifacts in `{{TESTS_PATH}}/e2e-runs/`
+- **Not suitable for** - Successful test runs; test authoring (use `/e2e-guard` for that)
+- **Artifact dependency** - Screenshots and logs must exist; if artifacts are missing, re-run `/e2e` first
 
 ## See Also
 

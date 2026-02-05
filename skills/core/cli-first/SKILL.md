@@ -1,6 +1,38 @@
 ---
 name: cli-first
 description: Enforce code observability for AI-powered dynamic verification. Replaces brittle unit tests with mocks - instead, make code queryable so AI can verify against the live system.
+argument-hint: [--recent | --design "feature"]
+---
+
+## TL;DR
+
+**What:** Audit code for observability - testIDs, state exposure, token-efficient verification patterns.
+
+**When:** After `/create-task` (use `--recent`), or before implementation (use `--design`).
+
+**Output:** Report of missing testIDs, closure state, token-heavy patterns with fixes.
+
+---
+
+## Table of Contents
+
+- [Tech Context Detection](#tech-context-detection)
+- [How to Use](#how-to-use) (3 modes)
+- [Audit Steps](#audit-steps)
+  - [Category 1: Greppability](#category-1-can-ai-find-it-greppability)
+  - [Category 2: Accessibility](#category-2-can-ai-query-it-accessibility)
+  - [Category 3: Token Cost](#category-3-can-ai-verify-efficiently-token-cost)
+  - [Category 4: Test Patterns](#category-4-is-it-ai-verifiable-test-patterns)
+- [Output Format](#output-format)
+- [Design Advisor Mode](#design-advisor-mode)
+- [Differentiation from /coding-guard](#differentiation-from-coding-guard)
+- [Integration with Other Skills](#integration-with-other-skills)
+- [Quick Commands](#quick-commands)
+- [Why This Matters](#why-this-matters)
+- [Limitations](#limitations)
+- [When NOT to Use](#when-not-to-use)
+- [See Also](#see-also)
+
 ---
 
 ## Tech Context Detection
@@ -49,19 +81,41 @@ CLI-First + AI    = Dynamic verification of live reality
 ```
 /cli-first
 ```
-Scans codebase for all CLI-first violations that block AI verification.
+Scans entire codebase for all CLI-first violations that block AI verification.
+
+**When to use:** Initial project setup, major refactoring, comprehensive review.
+
+**Cost:** High (scans all files). Use sparingly.
 
 ### Mode 2: Post-Implementation Review
 ```
 /cli-first --recent
 ```
-Analyzes only recently changed files (like /coding-guard).
+Analyzes only recently changed files (like `/coding-guard`).
 
-### Mode 3: Design Advisor
+**When to use:** After `/create-task` completes, as part of parallel verification gates.
+
+**Cost:** Low (only changed files). Use after every implementation.
+
+### Mode 3: Design Advisor (Pre-Implementation)
 ```
 /cli-first --design "feature description"
 ```
-Provides CLI-first design guidance before implementation.
+Provides CLI-first design guidance before implementation starts.
+
+**When to use:** After `/ux-planner`, before `/create-task`. Helps plan testIDs and state exposure upfront.
+
+**Cost:** Minimal (analysis only). Recommended for complex features.
+
+### Mode Selection Guide
+
+| Scenario | Mode | Why |
+|----------|------|-----|
+| Starting new project | Full audit | Establish baseline |
+| After each `/create-task` | `--recent` | Verify changes only |
+| Planning complex feature | `--design` | Design for observability |
+| Debugging test failures | Full audit | Find missing testIDs |
+| Regular development | `--recent` | Part of verification loop |
 
 ---
 
@@ -416,6 +470,22 @@ agent-browser snapshot -c | grep "John"                  # Actual DOM
 - AI adapts verification strategy as code evolves
 
 ---
+
+## Limitations
+
+- **Read-only** - Audits code but doesn't modify files directly
+- **Pipeline position** - Runs in parallel with `/coding-guard` and `/ux-review` after `/create-task`
+- **Prerequisites** - Requires source files to exist; best used on recent changes
+- **Not suitable for** - API-only projects with no UI; pure backend services without frontend state
+
+## When NOT to Use
+
+Skip `/cli-first` when:
+- **API-only project** - No browser state to expose
+- **Documentation changes** - No code to audit
+- **Backend-only change** - No frontend observability needed
+- **Styleguide already comprehensive** - TestIDs and state exposure in place
+- **Already ran recently** - Full audit is expensive; use `--recent` for incremental
 
 ## See Also
 

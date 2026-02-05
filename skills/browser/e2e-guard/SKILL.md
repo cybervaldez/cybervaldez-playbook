@@ -3,6 +3,16 @@ name: e2e-guard
 description: Analyze code changes, auto-generate e2e tests, and run them. Use after implementing changes to ensure test coverage.
 ---
 
+## TL;DR
+
+**What:** Auto-generate E2E tests for code changes. Ensures coverage exists.
+
+**When:** After `/create-task`, in parallel with other guards.
+
+**Output:** New/updated test files in `{{TESTS_PATH}}/`. Runs tests to verify.
+
+---
+
 ## Tech Context Detection
 
 Before generating tests, check for technology-specific coverage patterns:
@@ -166,6 +176,24 @@ git diff --name-only HEAD -- '*.js' '*.py' '*.css'
 
 # Or check unstaged changes
 git diff --name-only -- '*.js' '*.py' '*.css'
+```
+
+### Git State Handling
+
+| Git State | Behavior |
+|-----------|----------|
+| Has commits, changes exist | Uses `git diff HEAD` |
+| First commit ever | Uses `git diff --cached` |
+| No changes | No tests to generate - success |
+| No git repo | Error: "Not a git repository" |
+
+**First commit scenario:**
+```bash
+# Stage your files first
+git add .
+
+# Then run e2e-guard
+/e2e-guard  # Will use --cached automatically
 ```
 
 ### Step 2: Categorize Changes
@@ -430,6 +458,14 @@ bash {{TESTS_PATH}}/ui/test_component.sh {{SERVER_PORT}}
 # Run all UI tests
 {{VENV_PYTHON}} test-ui.py --port {{SERVER_PORT}}
 ```
+
+## Limitations
+
+- **Modifies files** - Creates new test files; updates existing tests
+- **Pipeline position** - Runs in parallel with `/coding-guard`, `/cli-first`, `/ux-review` after `/create-task`
+- **Prerequisites** - Requires `git diff` output; changed files must be committed or staged
+- **Not suitable for** - CSS-only changes; visual-only changes that don't affect behavior
+- **Non-testable changes** - Skip for: styling tweaks, comments, documentation, type-only changes
 
 ## See Also
 

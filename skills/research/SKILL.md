@@ -4,6 +4,16 @@ description: Research technologies and classify their impact on the playbook pip
 argument-hint: <technology name>
 ---
 
+## TL;DR
+
+**What:** Research a technology, classify its domain, document pipeline impact.
+
+**When:** Before using a new library/framework. Enables tech-aware skills.
+
+**Output:** `techs/{tech}/README.md` with domain classification and skill impact matrix.
+
+---
+
 # /research — Technology Research (Phase 1)
 
 Research a technology and classify its domain and pipeline impact. This is **Phase 1** of two-phase research:
@@ -218,3 +228,20 @@ To manually produce all reference docs now, say "produce all {tech} references".
 If user requests "produce all {tech} references", evaluate each skill using the Skill Concern Matrix in `skills/TECH_CONTEXT.md` and produce reference docs for skills where 2+ concerns are relevant.
 
 This bypasses lazy evaluation for users who want complete docs upfront.
+
+## Limitations
+
+- **Modifies files** - Creates `techs/{tech}/README.md` after user confirmation
+- **Pipeline position** - Pre-implementation; informs all other skills with tech context
+- **Prerequisites** - Web search access required; user confirmation before saving
+- **Not suitable for** - Quick implementation (use `/create-task` directly if tech is already researched)
+
+## See Also
+
+- `/create-task` - Consumes tech context for implementation patterns
+- `/coding-guard` - Uses tech context for anti-pattern detection
+- `/cli-first` - Uses tech context for observability patterns
+- `/e2e-guard` - Uses tech context for test generation patterns
+- `/ux-planner` - Uses tech context for UX component constraints
+- `/ui-planner` - Uses tech context for visual component patterns
+- `skills/TECH_CONTEXT.md` - Domain classification and skill concern matrix

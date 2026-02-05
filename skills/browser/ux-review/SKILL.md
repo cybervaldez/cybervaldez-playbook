@@ -3,6 +3,16 @@ name: ux-review
 description: Verify UI changes from user perspective via browser testing. Auto-suggested after /create-task completes.
 ---
 
+## TL;DR
+
+**What:** Visual UX verification via screenshots. Checks feedback, consistency, interactions.
+
+**When:** After `/create-task` completes (auto-suggested).
+
+**Output:** UX report with implementation verification, gaps identified, improvement suggestions.
+
+---
+
 ## Tech Context Detection
 
 Before reviewing, check for technology-specific visual patterns:
@@ -634,9 +644,29 @@ When gaps or improvements are identified, use `/create-task` to implement the fi
 /create-task -> implement -> /coding-guard -> /ux-review -> /create-task (for fixes)
 ```
 
+## Limitations
+
+- **Read-only** - Takes screenshots and reports issues; doesn't modify files
+- **Pipeline position** - Runs in parallel with `/coding-guard`, `/cli-first`, `/e2e-guard` after `/create-task`
+- **Prerequisites** - Server must be running; implementation must exist
+- **Not suitable for** - CLI-only projects; API-only projects; pre-implementation design (use `/ui-planner`)
+- **Browser required** - Needs `agent-browser` for screenshots and verification
+
+## When NOT to Use
+
+Skip `/ux-review` when:
+- **Backend-only change** - No visual impact to verify
+- **API endpoint change** - No user-facing UI affected
+- **CSS-only refactor** - No behavioral changes (use `/ui-review` instead)
+- **Test file updates** - No implementation changes
+- **Documentation changes** - No UI to review
+- **Server not running** - Will fail; start server first
+
 ## See Also
 
 - `/create-task` - **Use to implement fixes from UX review**
-- `/coding-guard` - Code pattern auditing (run before UX review)
+- `/ui-planner` - Visual design advisor (pre-implementation)
+- `/ui-review` - Design quality guard (post `/ui-planner`, pre implementation)
+- `/coding-guard` - Code pattern auditing (run in parallel)
 - `/e2e-guard` - E2E test coverage
 - `/agent-browser` - Browser automation reference (screenshots, clicks, evals)

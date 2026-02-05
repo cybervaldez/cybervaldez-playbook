@@ -3,6 +3,16 @@ name: coding-guard
 description: Audit recent code changes for coding convention violations. Use after implementing changes to verify they follow project standards.
 ---
 
+## TL;DR
+
+**What:** Scan code for anti-patterns - fallback defaults, silent failures, state pollution.
+
+**When:** After `/create-task` completes, before committing.
+
+**Output:** List of violations with line numbers and suggested fixes.
+
+---
+
 ## Tech Context Detection
 
 Before executing, check for technology-specific anti-patterns:
@@ -46,6 +56,25 @@ git diff --name-only HEAD~1 -- '*.js' '*.py' 2>/dev/null || git diff --name-only
 
 # Or check unstaged changes
 git diff --name-only -- '*.js' '*.py'
+```
+
+### Git State Handling
+
+| Git State | Behavior |
+|-----------|----------|
+| Has commits, unstaged changes | Uses `git diff` (working tree) |
+| Has commits, staged changes | Uses `git diff --cached` |
+| First commit ever | Uses `git diff --cached` (staged files) |
+| No git repo | Error: "Not a git repository" |
+| Clean working tree | No changes to audit - success |
+
+**First commit scenario:**
+```bash
+# Stage your files first
+git add .
+
+# Then run coding-guard
+/coding-guard  # Will use --cached automatically
 ```
 
 ### Step 2: Scan for Anti-Patterns
@@ -182,6 +211,14 @@ git diff --name-only | xargs grep -l "catch.*return \[\]" 2>/dev/null
 # Full scan of a specific file
 grep -nE "\|\| [0-9]|\?\? [0-9]|\|\| \[\]|\|\| \{\}|catch.*return \[\]" path/to/file.js
 ```
+
+## Limitations
+
+- **Read-only** - Audits code but doesn't modify files
+- **Pipeline position** - Runs in parallel after `/create-task` alongside `/cli-first`, `/ux-review`, `/e2e-guard`
+- **Prerequisites** - Requires `git diff` output; works best after commits or staged changes
+- **Not suitable for** - Initial project setup (no git history); pure documentation changes
+- **Git state assumptions** - Requires at least one prior commit; for first commits, run on staged changes instead
 
 ## See Also
 
