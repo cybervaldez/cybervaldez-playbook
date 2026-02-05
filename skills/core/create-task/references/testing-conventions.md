@@ -83,11 +83,11 @@ curl -s http://localhost:{{SERVER_PORT}}{{API_BASE}}/queue/status
 ### Server Check with Retry
 
 ```bash
-wait_for_webui() {
+wait_for_server() {
     local max_attempts=10
     local attempt=1
     while [ $attempt -le $max_attempts ]; do
-        if curl -s "$BASE_URL{{API_BASE}}/config" > /dev/null 2>&1; then
+        if curl -sf "$BASE_URL/" > /dev/null 2>&1; then
             return 0
         fi
         ((attempt++))
@@ -97,7 +97,7 @@ wait_for_webui() {
 }
 
 # Usage
-if ! wait_for_webui; then
+if ! wait_for_server; then
     fail "Server not available after 10 attempts"
     exit 1
 fi
@@ -119,7 +119,7 @@ trap cleanup EXIT
 
 ### Server Check (Simple)
 ```bash
-curl -sf "$BASE_URL{{API_BASE}}/config" > /dev/null 2>&1 && pass "Running" || fail "Down"
+curl -sf "$BASE_URL/" > /dev/null 2>&1 && pass "Running" || fail "Down"
 ```
 
 ### UI Element
@@ -138,6 +138,84 @@ RESULT=$(agent-browser eval "Object.property" 2>/dev/null)
 ```bash
 curl -sf "$URL" | grep -q "expected" && pass "OK" || fail "Failed"
 ```
+
+## Non-Browser Output Testing
+
+Some technologies produce output that isn't a web page (video, images, files). These require alternative verification tools.
+
+### Output Verification Tools
+
+| Output Type | Verification Tool | Install | Example |
+|-------------|------------------|---------|---------|
+| Video | ffprobe | `apt install ffmpeg` | Duration, fps, codec |
+| Image | file, identify | `apt install imagemagick` | Dimensions, format |
+| JSON file | jq | `apt install jq` | Schema validation |
+| PDF | pdfinfo | `apt install poppler-utils` | Page count, metadata |
+| Audio | ffprobe | `apt install ffmpeg` | Duration, sample rate |
+
+### Video Output Pattern (e.g., Remotion)
+
+```bash
+# Render video
+npx remotion render src/index.ts CompositionName out/video.mp4 --codec=h264
+[ $? -eq 0 ] && pass "Render completed" || fail "Render failed"
+
+# Verify file exists
+[ -f "out/video.mp4" ] && pass "Video file exists" || fail "Missing"
+
+# Verify duration (ffprobe)
+DURATION=$(ffprobe -v error -show_entries format=duration -of csv=p=0 out/video.mp4)
+[ "$(echo "$DURATION > 5" | bc)" = "1" ] && pass "Duration: ${DURATION}s" || fail "Too short"
+
+# Verify fps
+FPS=$(ffprobe -v error -select_streams v -show_entries stream=r_frame_rate -of csv=p=0 out/video.mp4)
+echo "$FPS" | grep -q "30/1" && pass "FPS: 30" || fail "Wrong FPS: $FPS"
+
+# Verify codec
+CODEC=$(ffprobe -v error -select_streams v -show_entries stream=codec_name -of csv=p=0 out/video.mp4)
+[ "$CODEC" = "h264" ] && pass "Codec: h264" || fail "Wrong codec: $CODEC"
+```
+
+### Image Output Pattern
+
+```bash
+# Generate image
+node generate-image.js --output out/image.png
+
+# Verify file exists and is valid PNG
+file out/image.png | grep -q "PNG image" && pass "Valid PNG" || fail "Invalid"
+
+# Verify dimensions (ImageMagick)
+DIMS=$(identify -format "%wx%h" out/image.png)
+[ "$DIMS" = "1920x1080" ] && pass "Dimensions: $DIMS" || fail "Wrong size: $DIMS"
+```
+
+### File Output Pattern
+
+```bash
+# Generate file
+node generate-data.js --output out/data.json
+
+# Verify file exists
+[ -f "out/data.json" ] && pass "File exists" || fail "Missing"
+
+# Verify JSON structure
+jq -e '.required_field' out/data.json > /dev/null && pass "Has required_field" || fail "Missing field"
+
+# Verify array length
+COUNT=$(jq '.items | length' out/data.json)
+[ "$COUNT" -gt 0 ] && pass "Has $COUNT items" || fail "Empty array"
+```
+
+### Key Differences from Browser Testing
+
+| Aspect | Browser (agent-browser) | Non-Browser (file tools) |
+|--------|------------------------|--------------------------|
+| Verification | DOM snapshot | File properties |
+| State check | JS eval | Parse file content |
+| Visual check | Screenshot | Extract frame/thumbnail |
+| Failure artifacts | Screenshots | Output files, render logs |
+| Cleanup | `agent-browser close` | `rm -rf out/` |
 
 ### JSON Validation with jq Fallbacks
 ```bash
@@ -303,10 +381,10 @@ rm -rf {{OUTPUTS_PATH}}/*
 
 ### Graceful Skip
 ```bash
-# Check server mode before testing mode-specific features
-DEBUG_MODE=$(curl -sf "$BASE_URL{{API_BASE}}/config" | jq -r '.debug // false')
-if [ "$DEBUG_MODE" != "true" ]; then
-    echo "  ! Server not in debug mode - skipping generation tests"
+# Skip tests when required conditions aren't met
+if ! curl -sf "$BASE_URL/" > /dev/null 2>&1; then
+    echo "  ! Server not available - skipping tests"
+    exit 0
 fi
 ```
 
@@ -395,3 +473,39 @@ Before implementing changes, verify:
 - [ ] Error messages are clear and specific?
 
 See also: `/coding-guard` (post-implementation audit)
+
+---
+
+## Advanced: API Configuration Endpoint
+
+When your project has an API backend, consider adding a `/api/config` endpoint for enhanced testing capabilities:
+
+```python
+@app.route('/api/config')
+def config():
+    return jsonify({
+        "debug": app.config.get('DEBUG', False),
+        "job_name": os.environ.get('JOB_NAME', 'default')
+    })
+```
+
+This enables:
+
+### Debug Mode Checks
+```bash
+# Check server mode before testing mode-specific features
+DEBUG_MODE=$(curl -sf "$BASE_URL{{API_BASE}}/config" | jq -r '.debug // false')
+if [ "$DEBUG_MODE" != "true" ]; then
+    echo "  ! Server not in debug mode - skipping generation tests"
+fi
+```
+
+### Configuration Verification
+```bash
+# Verify server is running with expected config
+CONFIG=$(curl -sf "$BASE_URL{{API_BASE}}/config")
+echo "Debug mode: $(echo "$CONFIG" | jq -r '.debug')"
+echo "Job: $(echo "$CONFIG" | jq -r '.job_name')"
+```
+
+**Note:** The basic health check (`wait_for_server`) uses root path `/` and works without an API. Use `/api/config` patterns only when your project has an API backend.

@@ -174,6 +174,25 @@ When presenting alternatives, use this format:
 **Which approach aligns best with your goals?**
 ```
 
+### When Options Include Libraries/Frameworks
+
+If an option recommends a specific technology (library, framework, tool), add a pipeline check hint:
+
+```markdown
+### Option C: [Library Name]
+- **Approach**: [Brief description]
+- **Pros**: [Benefits]
+- **Cons**: [Drawbacks]
+- **Effort**: Low/Medium/High
+- **Best for**: [Use case]
+
+> 💡 Run `/research {lib}` to check pipeline compatibility before implementing.
+```
+
+**Why:** UX Planner focuses on user experience, not pipeline mechanics. The `/research` skill documents how technologies affect the playbook pipeline (build, testing, skill references). This handoff keeps responsibilities clear:
+- `/ux-planner` — Solves the UX problem, suggests tech as options
+- `/research` — Documents pipeline impact, produces `techs/{tech}/README.md`
+
 ## Handoff Formats
 
 ### To /create-task
@@ -396,6 +415,8 @@ Skill: Good constraints. For desktop-only with moderate list sizes:
 - **Pros**: Smooth animations, edge cases handled
 - **Cons**: External dependency, bundle size
 - **Effort**: Low-Medium
+
+> 💡 Run `/research sortablejs` to check pipeline compatibility before implementing.
 
 For 5-20 items on desktop, **Option A** gives native feel
 without dependencies. Ready for /create-task?

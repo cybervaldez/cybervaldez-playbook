@@ -297,10 +297,10 @@ wait_for_state() {
 wait_for_state "window.AppState.status" "ready"
 ```
 
-### Wait for API Pattern
+### Wait for Server Pattern
 
 ```bash
-wait_for_api() {
+wait_for_server() {
     local url="$1"
     local max_attempts=10
     local attempt=1
@@ -315,8 +315,8 @@ wait_for_api() {
     return 1
 }
 
-# Usage
-wait_for_api "$BASE_URL/api/config"
+# Usage - works with any server (static or API)
+wait_for_server "$BASE_URL/"
 ```
 
 ---

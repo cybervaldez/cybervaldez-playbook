@@ -385,10 +385,10 @@ echo "$SNAPSHOT" | grep -qi "another item" && log_pass "Found another" || log_fa
 ### Graceful Skip
 
 ```bash
-# Check server mode before testing mode-specific features
-DEBUG_MODE=$(curl -sf "$BASE_URL{{API_BASE}}/config" | grep -oP '"debug_images":\s*\Ktrue' || echo "false")
-if [ "$DEBUG_MODE" != "true" ]; then
-    log_info "Server not in debug mode - skipping generation tests"
+# Skip tests when required conditions aren't met
+if ! curl -sf "$BASE_URL/" > /dev/null 2>&1; then
+    log_info "Server not available - skipping tests"
+    exit 0
 fi
 ```
 
@@ -432,13 +432,11 @@ Use patterns in this order of preference:
 
 ## Troubleshooting
 
-### Debug Mode Check
+### Server Health Check
 
 ```bash
-# Verify server is running with expected config
-CONFIG=$(curl -sf "$BASE_URL{{API_BASE}}/config")
-echo "Debug mode: $(echo "$CONFIG" | jq -r '.debug')"
-echo "Job: $(echo "$CONFIG" | jq -r '.job_name')"
+# Verify server is running (works with any server type)
+curl -sf "$BASE_URL/" > /dev/null && echo "Server running" || echo "Server down"
 ```
 
 ### Common Issues
@@ -491,3 +489,35 @@ After completing the task, consider running:
 - `/ux-review` - User perspective verification
 - `{{TESTS_PATH}}/lib/test_utils.sh` - Shared test utilities source code
 - `references/testing-conventions.md` - Detailed testing patterns
+
+---
+
+## Advanced: API Configuration Endpoint
+
+When your project has an API backend, add a `/api/config` endpoint for enhanced testing:
+
+```python
+@app.route('/api/config')
+def config():
+    return jsonify({
+        "debug": app.config.get('DEBUG', False),
+        "job_name": os.environ.get('JOB_NAME', 'default')
+    })
+```
+
+This enables debug mode checks and configuration verification:
+
+```bash
+# Check server mode before testing mode-specific features
+DEBUG_MODE=$(curl -sf "$BASE_URL{{API_BASE}}/config" | jq -r '.debug // false')
+if [ "$DEBUG_MODE" != "true" ]; then
+    log_info "Server not in debug mode - skipping generation tests"
+fi
+
+# Verify server config
+CONFIG=$(curl -sf "$BASE_URL{{API_BASE}}/config")
+echo "Debug mode: $(echo "$CONFIG" | jq -r '.debug')"
+echo "Job: $(echo "$CONFIG" | jq -r '.job_name')"
+```
+
+**Note:** Basic health checks use root path `/` and work without an API.
