@@ -2,7 +2,7 @@
 
 > For founders and developers who want to ship fast without accumulating debt.
 >
-> **What you'll get:** 9 skills guide the AI through planning, building, and testing. Not sure what to build? AI discovers trending ideas to spark your direction. No manual setup—everything configured automatically.
+> **What you'll get:** 11 skills guide the AI through planning, building, and testing. Not sure what to build? AI discovers trending ideas to spark your direction. No manual setup—everything configured automatically.
 
 ---
 
@@ -1036,6 +1036,8 @@ cp -r skills/core/* .claude/skills/
 
 This includes:
 - ux-planner (universal UX principles)
+- ui-planner (visual design advisor)
+- ui-review (AI slop guard)
 - create-task (implementation workflow)
 - coding-guard (code quality)
 - cli-first (observability)
@@ -1244,6 +1246,8 @@ then open a new terminal and restart Claude Code so it picks
 up the new skills from .claude/skills/:
 
   /ux-planner   — chart your first feature
+  /ui-planner   — establish visual identity
+  /ui-review    — catch AI slop patterns
   /create-task  — build with tests baked in
   /research     — evaluate tech for your stack
   /coding-guard — check for anti-patterns

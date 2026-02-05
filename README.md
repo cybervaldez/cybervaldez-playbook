@@ -14,7 +14,7 @@ If you're a founder, tech lead, or recruiter considering working with me, this r
 - Real patterns from production projects
 
 ### 2. For Founders & Developers Ready to Kickstart An Idea
-- 9 skills guide the AI through planning, building, and testing*
+- 11 skills guide the AI through planning, building, and testing*
 - Not sure what to build yet? AI discovers trending ideas to spark your direction
 - No manual setup—everything configured automatically**
 
@@ -110,6 +110,8 @@ the transitions between them.**
 
 - `/research` - make skills tech-aware
 - `/ux-planner` - think before building
+- `/ui-planner` - establish visual identity
+- `/ui-review` - catch AI slop patterns
 - `/create-task` - implement with tests baked in
 - `/coding-guard` - catch anti-patterns early
 - `/cli-first` - make code observable
@@ -649,7 +651,20 @@ Test IDs are the **contract** between implementation and testing. They make the 
 |           |                                                               |
 |           | ==> (optional) /cli-first --design for observability guidance |
 |           |                                                               |
-|           | ==> HANDOFF: UX Recommendation formatted for /create-task     |
+|           | ==> HANDOFF: UX flows ready for visual design                 |
+|           v                                                               |
+|  +------------------+                                                     |
+|  |   /ui-planner    |  <- VISUAL DESIGN: Aesthetic + layout + tokens     |
+|  +--------+---------+    (optional but recommended for UI-heavy projects) |
+|           |                                                               |
+|           | ==> Generates preview files                                   |
+|           v                                                               |
+|  +------------------+                                                     |
+|  |   /ui-review     |  <- SLOP GUARD: Catch AI-generic patterns          |
+|  +--------+---------+                                                     |
+|           |                                                               |
+|           | ==> FAIL? Loop back to /ui-planner with suggestions           |
+|           | ==> PASS? Proceed to implementation                           |
 |           v                                                               |
 |  +------------------+                                                     |
 |  |   /create-task   |  <- IMPLEMENTATION: Code + tests                   |
@@ -688,7 +703,9 @@ Test IDs are the **contract** between implementation and testing. They make the 
 | Skill | Purpose | Connects To |
 |-------|---------|-------------|
 | `/research` | Research technologies and classify their pipeline impact | Enables tech-aware skills |
-| `/ux-planner` | Conversational UX advisor - asks questions, explores options, plans interactions | Outputs to `/create-task` |
+| `/ux-planner` | Conversational UX advisor - asks questions, explores options, plans interactions | Outputs to `/ui-planner` or `/create-task` |
+| `/ui-planner` | Visual design advisor - establishes aesthetic, layout, and design tokens | Outputs to `/ui-review` |
+| `/ui-review` | Visual design quality guard - detects AI slop and generic patterns | Feeds back to `/ui-planner` or outputs to `/create-task` |
 | `/create-task` | Implementation with built-in e2e testing requirements | Triggers `/coding-guard`, `/cli-first`, `/ux-review`, `/e2e-guard` |
 | `/coding-guard` | Scans code changes for anti-patterns and convention violations | Reports issues to fix |
 | `/cli-first` | Enforces code observability for AI-powered dynamic verification | Complements `/coding-guard` |
@@ -744,6 +761,8 @@ agent-browser close
 
 The playbook uses **two-phase research** to make skills tech-aware without slowing developers down:
 
+> **Note:** The playbook assumes a single-project context. For monorepos, scope your tasks to specific subdirectories. See `skills/TECH_CONTEXT.md` for full assumptions.
+
 ### Phase 1: Tech Assessment (On Install/Mention)
 
 When you mention a new technology in your **kickstarted project**, run `/research {tech}` to create a lightweight assessment:
@@ -775,14 +794,14 @@ This lazy evaluation means docs are produced when needed, based on actual usage 
 | Domain | Examples | Skills Affected |
 |--------|----------|-----------------|
 | **State Management** | XState, Redux, Zustand, Jotai | coding-guard, cli-first, create-task |
-| **UI Components** | Radix, Shadcn, MUI, Chakra | ux-planner, ux-review, create-task |
+| **UI Components** | Radix, Shadcn, MUI, Chakra | ux-planner, ui-planner, ui-review, ux-review, create-task |
 | **Data Fetching** | TanStack Query, SWR, tRPC, Apollo | coding-guard, e2e-guard, create-task |
 | **Form Handling** | React Hook Form, Formik, Zod | ux-planner, coding-guard, e2e-guard |
-| **Animation** | Framer Motion, GSAP, React Spring | ux-review, e2e (wait patterns) |
+| **Animation** | Framer Motion, GSAP, React Spring | ux-review, ui-planner, ui-review, e2e (wait patterns) |
 | **Routing** | React Router, TanStack Router | create-task, e2e, e2e-guard |
 | **Testing Tools** | Playwright, Vitest, Jest | e2e, e2e-guard, e2e-investigate |
 | **Build Tools** | Vite, Turbopack, esbuild | create-task, e2e (server startup) |
-| **Styling** | Tailwind, CSS Modules | ux-review, ux-planner |
+| **Styling** | Tailwind, CSS Modules | ux-review, ux-planner, ui-planner, ui-review |
 | **Auth** | NextAuth, Clerk, Auth0 | coding-guard, e2e, create-task |
 
 ### Skill Concern Matrix
@@ -795,6 +814,8 @@ Each skill evaluates specific concerns when deciding whether to produce a tech r
 | **coding-guard** | Anti-patterns? Silent failures? State mutation? Error handling? |
 | **cli-first** | State exposure? TestID conventions? Verification commands? Token costs? |
 | **ux-planner** | Component constraints? Async feedback? Accessibility? Form patterns? |
+| **ui-planner** | Design tokens? Animation constraints? Component theming? Layout systems? |
+| **ui-review** | Typography validation? Color system check? Animation capabilities? Brand alignment? |
 | **e2e-guard** | Coverage patterns? Element selection? API verification? State assertions? |
 | **e2e** | Server startup? Artifact paths? Timing/waits? Cleanup? |
 | **e2e-investigate** | Failure patterns? Log formats? Reproduction? Debug tools? |
@@ -808,7 +829,7 @@ See `skills/TECH_CONTEXT.md` for the complete reference.
 
 ## The In-Between Actions
 
-### Transition 1: UX Planning -> Implementation
+### Transition 1: UX Planning -> Visual Design (Optional)
 
 ```
 /ux-planner produces:
@@ -820,10 +841,28 @@ See `skills/TECH_CONTEXT.md` for the complete reference.
                     |
                     v
 
-/create-task consumes this and knows exactly what to build
+/ui-planner consumes this and establishes visual identity:
+  - Aesthetic direction (from gallery selection)
+  - Layout patterns
+  - Design tokens (styleguide.css)
+  - HTML preview files
+
+                    |
+                    v
+
+/ui-review validates the design:
+  - Styleguide compliance check
+  - AI slop pattern detection
+  - Context-specific audit
+
+                    |
+         PASS?      |      FAIL?
+          |         |         |
+          v         |         v
+    /create-task <--|-- /ui-planner (iterate)
 ```
 
-The planner asks clarifying questions, presents 2-3 options with tradeoffs, and produces a structured recommendation. This prevents building the wrong thing.
+The ui-planner/ui-review loop ensures designs are distinctive, not generic AI output. Skip this for non-UI-heavy features.
 
 ### Transition 2: Implementation -> Quality Gates
 
@@ -1065,6 +1104,8 @@ If you installed manually, the skills use these placeholders that you'll need to
 These work as-is across any web project:
 
 - `ux-planner/` - Universal UX principles and patterns
+- `ui-planner/` - Visual design advisor and preview generation
+- `ui-review/` - AI slop detection and design quality guard
 - `ux-review/` - Generic UX verification workflow
 - `agent-browser/` - Browser automation utility
 
@@ -1078,8 +1119,10 @@ See `KICKSTART.md` "Post-Kickstart: Optional Customizations" section for customi
 
 | File | Purpose |
 |------|---------|
-| `skills/TECH_CONTEXT.md` | Domain classification table and skill concern matrix for tech research |
+| `skills/TECH_CONTEXT.md` | Preflight assumptions, domain classification, and skill concern matrix |
 | `skills/core/ux-planner/references/ux-patterns.md` | UX laws, principles, and patterns database |
+| `skills/core/ui-planner/references/ui-patterns.md` | Design tokens, typography, color theory, and visual patterns |
+| `skills/core/ui-review/references/slop-research.md` | AI slop research methodology and detection patterns |
 | `skills/core/create-task/references/testing-conventions.md` | Testing patterns and best practices |
 | `skills/core/cli-first/references/cli-patterns.md` | Token cost table and universal CLI-first patterns |
 
@@ -1112,6 +1155,16 @@ The UX patterns reference includes timeless principles that apply to any web pro
 │   │   │   ├── SKILL.md
 │   │   │   └── references/
 │   │   │       └── ux-patterns.md
+│   │   ├── ui-planner/
+│   │   │   ├── SKILL.md
+│   │   │   ├── references/
+│   │   │   │   └── ui-patterns.md
+│   │   │   └── templates/
+│   │   │       └── preview-base.html
+│   │   ├── ui-review/
+│   │   │   ├── SKILL.md
+│   │   │   └── references/
+│   │   │       └── slop-research.md
 │   │   ├── create-task/
 │   │   │   ├── SKILL.md
 │   │   │   └── references/
@@ -1154,6 +1207,8 @@ your-project/
 │       ├── TECH_CONTEXT.md             # Domain classification & concern matrix
 │       ├── research/                   # Technology research skill
 │       ├── ux-planner/                 # (from core/)
+│       ├── ui-planner/                 # (from core/)
+│       ├── ui-review/                  # (from core/)
 │       ├── create-task/                # (from core/)
 │       ├── coding-guard/               # (from core/)
 │       ├── cli-first/                  # (from core/)
