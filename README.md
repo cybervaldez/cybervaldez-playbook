@@ -182,9 +182,10 @@ Idea -> Code -> Done
 This approach fails because it skips the critical thinking steps. My workflow forces structured pauses:
 
 ```
-Idea -> UX Planning -> Implementation -> Parallel Verification -> Full Testing -> Done
-           |                                  |                        |
-      FORCED PAUSE                     QUALITY GATES             RECOVERY LOOPS
+Idea -> UX Planning -> Visual Design -> Implementation -> Parallel Verification -> Full Testing -> Done
+           |               |                                  |                        |
+      FORCED PAUSE    FORCED PAUSE                     QUALITY GATES             RECOVERY LOOPS
+                     (optional)
 ```
 
 Each arrow represents a **structured handoff** - output from one skill becomes input for the next.
@@ -1090,6 +1091,46 @@ See `skills/TECH_CONTEXT.md` for the complete reference.
           v         |         v
     /create-task <--|-- /ui-planner (iterate)
 ```
+
+**The ASCII Gallery Drill-Down Process**
+
+`/ui-planner` forces explicit visual decisions via interactive ASCII galleries:
+
+```
+STEP 1: Aesthetic Selection (A-H) — visual thumbnails of each style
+┌─────────────────────────────────────────────────────────────────┐
+│  [A] BRUTALIST        [B] NEO-MINIMAL      [C] MAXIMALIST       │
+│  +---------------+    +---------------+    +---------------+    │
+│  | ############  |    |               |    | ***  +++  @@@ |    │
+│  | ##  TEXT  ##  |    |       o       |    | +++  @@@  *** |    │
+│  | ############  |    |    ______     |    | @@@  ***  +++ |    │
+│  +---------------+    +---------------+    +---------------+    │
+│  Raw, bold, no        Whitespace-focused,  Layered, textured,   │
+│  curves               breathing room       rich density         │
+└─────────────────────────────────────────────────────────────────┘
+→ User selects ONE letter (e.g., "D")
+
+STEP 2: Layout Selection (1-8) — visual wireframes
+┌─────────────────────────────────────────────────────────────────┐
+│  [1] SIDEBAR          [2] DASHBOARD        [3] CARD GRID        │
+│  +---------------+    +---------------+    +---------------+    │
+│  | +--+--------+ |    | +--+--+-----+ |    | +--+ +--+ +--+|    │
+│  | |  |        | |    | |  |  |     | |    | |  | |  | |  ||    │
+│  | |  |        | |    | +--+--+-----+ |    | +--+ +--+ +--+|    │
+│  | +--+--------+ |    | +-----------+ |    | +--+ +--+ +--+|    │
+│  +---------------+    +---------------+    +---------------+    │
+│  Nav left,            Metrics top,         Uniform grid of      │
+│  content right        content below        repeating items      │
+└─────────────────────────────────────────────────────────────────┘
+→ User multi-selects (e.g., "1, 3")
+
+STEP 3: Generate HTML Previews → each aesthetic+layout combo
+STEP 4: Iterate → "like X but with Y's header" → hybrid generated
+STEP 5: "this one" → design tokens committed to styleguide.css
+```
+
+The visual ASCII art makes each option immediately scannable - users see the
+structure before committing. This prevents defaulting to generic AI aesthetics.
 
 The ui-planner/ui-review loop ensures designs are distinctive, not generic AI output. Skip this for non-UI-heavy features.
 
