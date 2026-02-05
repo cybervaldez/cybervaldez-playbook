@@ -431,27 +431,35 @@ export default defineConfig({
 
 **The AI discovers what's trending to spark your direction.**
 
-Before generating the welcome page, search the web for:
+The welcome page features **3 cyclable themes**, each with CONSTELLATIONS (trending) and UNCHARTED (blue ocean) ideas. Users click the footer to cycle through themes.
+
+Before generating the welcome page, search the web for **3 distinct theme categories**:
 
 #### For python-cli-with-webui, nextjs-with-cli, and react-with-cli:
 
-1. **Founder-focused ideas** — discover tools that work with the playbook pipeline
-   - Example queries: "trending micro-SaaS ideas for solo founders 2026", "most profitable indie hacker tools 2026", "business tools founders are building 2026"
-   - Focus on **buildable products** with a clear value proposition. For each idea, capture:
-     - **Title**: Short name (3-5 words)
-     - **Pitch**: One-line elevator pitch explaining the value (no numbers/percentages)
-   - Ideas MUST be playbook-compatible:
-     - Has UI components (testable via agent-browser)
-     - Has API endpoints (testable via curl)
-     - Has observable state (window.appState or DOM)
-     - Behavior is deterministic (same input → same output)
+**Theme 1: Rising Stars** — Hot trending ideas
+- Example queries: "trending micro-SaaS ideas for solo founders 2026", "most profitable indie hacker tools 2026"
+- nextHint: "drift toward hidden nebulae"
 
-2. **Blue ocean opportunities** — discover underserved niches that are still playbook-compatible
-   - Example queries: "underserved micro-SaaS niches 2026", "blue ocean SaaS no competition 2026"
-   - Focus on gaps in the market — regulated verticals, overlooked industries, compliance needs
-   - Same playbook compatibility requirements as above
+**Theme 2: Hidden Nebulae** — Obscure but profitable niches
+- Example queries: "boring business software ideas 2026", "unsexy SaaS profitable niches"
+- nextHint: "chart distant galaxies"
 
-**These AI-discovered ideas populate the "CONSTELLATIONS" and "UNCHARTED" sections in the welcome page.**
+**Theme 3: Distant Galaxies** — Blue ocean opportunities
+- Example queries: "underserved micro-SaaS niches 2026", "blue ocean SaaS no competition 2026"
+- nextHint: "return to rising stars"
+
+**For each theme, capture 3 CONSTELLATIONS and 3 UNCHARTED ideas:**
+- **Title**: Short name (3-5 words)
+- **Pitch**: One-line elevator pitch explaining the value (no numbers/percentages)
+
+**All ideas MUST be playbook-compatible:**
+- Has UI components (testable via agent-browser)
+- Has API endpoints (testable via curl)
+- Has observable state (window.appState or DOM)
+- Behavior is deterministic (same input → same output)
+
+**These AI-discovered ideas populate the cyclable themes in the welcome page.**
 
 ---
 
@@ -492,7 +500,7 @@ Generate the welcome page with dynamic trending content from 4.2.
             align-items: center;
             padding: 2rem;
         }
-        .container { max-width: 600px; padding: 2rem; }
+        .container { width: 600px; max-width: 100%; padding: 2rem; }
         .constellation {
             color: #58a6ff;
             white-space: pre;
@@ -548,11 +556,13 @@ Generate the welcome page with dynamic trending content from 4.2.
         .explore-list {
             list-style: none;
             padding: 0;
+            min-height: 5.5rem;
         }
         .explore-list li {
             color: #c9d1d9;
             margin: 0.3rem 0;
             font-size: 0.85rem;
+            line-height: 1.4;
         }
         .explore-list .star { color: #f0883e; }
         .explore-list .pitch {
@@ -591,16 +601,16 @@ Generate the welcome page with dynamic trending content from 4.2.
             font-size: 0.75rem;
             margin-top: 0.5rem;
         }
-        .explore-hint {
+        .theme-cycle {
             text-align: center;
             margin-top: 0.75rem;
             font-size: 0.7rem;
             color: #6e7681;
+            cursor: pointer;
+            transition: color 0.2s;
         }
-        .explore-hint code {
-            color: #8b949e;
-            font-size: 0.7rem;
-        }
+        .theme-cycle:hover { color: #8b949e; }
+        .theme-cycle .arrow { color: #58a6ff; }
     </style>
 </head>
 <body>
@@ -622,14 +632,7 @@ guardrails cli-first e2e-truth</pre>
                 <span>── CONSTELLATIONS ──</span>
                 <span class="header-art"><span class="star">✦</span> · <span class="star">☆</span> · <span class="star">✦</span></span>
             </div>
-            <ul class="explore-list">
-                <li><span class="star">✦</span> TRENDING_TITLE_1<br>
-                    <span class="pitch">↳ TRENDING_PITCH_1</span></li>
-                <li><span class="star">✦</span> TRENDING_TITLE_2<br>
-                    <span class="pitch">↳ TRENDING_PITCH_2</span></li>
-                <li><span class="star">✦</span> TRENDING_TITLE_3<br>
-                    <span class="pitch">↳ TRENDING_PITCH_3</span></li>
-            </ul>
+            <ul class="explore-list" id="constellations"></ul>
         </div>
 
         <div class="section">
@@ -637,14 +640,7 @@ guardrails cli-first e2e-truth</pre>
                 <span>── UNCHARTED ──</span>
                 <span class="header-art"><span class="wave">~</span> <span class="wave">≈</span> <span class="wave">~</span> <span class="wave">≈</span></span>
             </div>
-            <ul class="explore-list">
-                <li><span class="star">✦</span> BLUE_OCEAN_TITLE_1<br>
-                    <span class="pitch">↳ BLUE_OCEAN_PITCH_1</span></li>
-                <li><span class="star">✦</span> BLUE_OCEAN_TITLE_2<br>
-                    <span class="pitch">↳ BLUE_OCEAN_PITCH_2</span></li>
-                <li><span class="star">✦</span> BLUE_OCEAN_TITLE_3<br>
-                    <span class="pitch">↳ BLUE_OCEAN_PITCH_3</span></li>
-            </ul>
+            <ul class="explore-list" id="uncharted"></ul>
         </div>
 
         <div class="section">
@@ -666,8 +662,8 @@ guardrails cli-first e2e-truth</pre>
             <code>/ux-planner "I want to build [your idea]"</code>
             <p class="hint">chart your course before you build</p>
         </div>
-        <p class="explore-hint">
-            still exploring? ask <code>"Update my welcome page with more [topic] trends"</code>
+        <p class="theme-cycle" id="theme-toggle">
+            <span id="theme-hint">THEME_1_NEXT_HINT</span> <span class="arrow">→</span>
         </p>
 
         <!-- Debug container for tests -->
@@ -678,6 +674,71 @@ guardrails cli-first e2e-truth</pre>
     </div>
 
     <script>
+        const themes = [
+            {
+                name: 'THEME_1_NAME',
+                nextHint: 'THEME_1_NEXT_HINT',
+                constellations: [
+                    { title: 'THEME_1_CONSTELLATION_1_TITLE', pitch: 'THEME_1_CONSTELLATION_1_PITCH' },
+                    { title: 'THEME_1_CONSTELLATION_2_TITLE', pitch: 'THEME_1_CONSTELLATION_2_PITCH' },
+                    { title: 'THEME_1_CONSTELLATION_3_TITLE', pitch: 'THEME_1_CONSTELLATION_3_PITCH' },
+                ],
+                uncharted: [
+                    { title: 'THEME_1_UNCHARTED_1_TITLE', pitch: 'THEME_1_UNCHARTED_1_PITCH' },
+                    { title: 'THEME_1_UNCHARTED_2_TITLE', pitch: 'THEME_1_UNCHARTED_2_PITCH' },
+                    { title: 'THEME_1_UNCHARTED_3_TITLE', pitch: 'THEME_1_UNCHARTED_3_PITCH' },
+                ]
+            },
+            {
+                name: 'THEME_2_NAME',
+                nextHint: 'THEME_2_NEXT_HINT',
+                constellations: [
+                    { title: 'THEME_2_CONSTELLATION_1_TITLE', pitch: 'THEME_2_CONSTELLATION_1_PITCH' },
+                    { title: 'THEME_2_CONSTELLATION_2_TITLE', pitch: 'THEME_2_CONSTELLATION_2_PITCH' },
+                    { title: 'THEME_2_CONSTELLATION_3_TITLE', pitch: 'THEME_2_CONSTELLATION_3_PITCH' },
+                ],
+                uncharted: [
+                    { title: 'THEME_2_UNCHARTED_1_TITLE', pitch: 'THEME_2_UNCHARTED_1_PITCH' },
+                    { title: 'THEME_2_UNCHARTED_2_TITLE', pitch: 'THEME_2_UNCHARTED_2_PITCH' },
+                    { title: 'THEME_2_UNCHARTED_3_TITLE', pitch: 'THEME_2_UNCHARTED_3_PITCH' },
+                ]
+            },
+            {
+                name: 'THEME_3_NAME',
+                nextHint: 'THEME_3_NEXT_HINT',
+                constellations: [
+                    { title: 'THEME_3_CONSTELLATION_1_TITLE', pitch: 'THEME_3_CONSTELLATION_1_PITCH' },
+                    { title: 'THEME_3_CONSTELLATION_2_TITLE', pitch: 'THEME_3_CONSTELLATION_2_PITCH' },
+                    { title: 'THEME_3_CONSTELLATION_3_TITLE', pitch: 'THEME_3_CONSTELLATION_3_PITCH' },
+                ],
+                uncharted: [
+                    { title: 'THEME_3_UNCHARTED_1_TITLE', pitch: 'THEME_3_UNCHARTED_1_PITCH' },
+                    { title: 'THEME_3_UNCHARTED_2_TITLE', pitch: 'THEME_3_UNCHARTED_2_PITCH' },
+                    { title: 'THEME_3_UNCHARTED_3_TITLE', pitch: 'THEME_3_UNCHARTED_3_PITCH' },
+                ]
+            }
+        ];
+
+        let currentTheme = 0;
+
+        function renderTheme() {
+            const theme = themes[currentTheme];
+            document.getElementById('constellations').innerHTML = theme.constellations.map(i =>
+                `<li><span class="star">✦</span> ${i.title}<br><span class="pitch">↳ ${i.pitch}</span></li>`
+            ).join('');
+            document.getElementById('uncharted').innerHTML = theme.uncharted.map(i =>
+                `<li><span class="star">✦</span> ${i.title}<br><span class="pitch">↳ ${i.pitch}</span></li>`
+            ).join('');
+            document.getElementById('theme-hint').textContent = theme.nextHint;
+        }
+
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            currentTheme = (currentTheme + 1) % themes.length;
+            renderTheme();
+        });
+
+        renderTheme();
+
         window.appState = {
             view: 'welcome',
             initialized: true
@@ -692,7 +753,7 @@ guardrails cli-first e2e-truth</pre>
 **Note:** The `react-with-cli` and `nextjs-with-cli` project types share the same App.tsx welcome page component and HTML template below.
 
 ```tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const s = {
   body: {
@@ -705,7 +766,7 @@ const s = {
     alignItems: 'center',
     padding: '2rem',
   },
-  container: { maxWidth: '600px', padding: '2rem' },
+  container: { width: '600px', maxWidth: '100%', padding: '2rem' },
   constellation: {
     color: '#58a6ff',
     whiteSpace: 'pre' as const,
@@ -746,8 +807,8 @@ const s = {
     letterSpacing: '0.3em',
   },
   dim: { color: '#8b949e' },
-  list: { listStyle: 'none' as const, padding: 0, margin: 0 },
-  listItem: { color: '#c9d1d9', margin: '0.3rem 0', fontSize: '0.85rem' },
+  list: { listStyle: 'none' as const, padding: 0, margin: 0, minHeight: '5.5rem' },
+  listItem: { color: '#c9d1d9', margin: '0.3rem 0', fontSize: '0.85rem', lineHeight: 1.4 },
   navItem: { margin: '0.3rem 0', fontSize: '0.85rem' },
   cmd: { color: '#7ee787' },
   desc: { color: '#8b949e' },
@@ -767,16 +828,66 @@ const s = {
   nextHint: { color: '#8b949e', fontSize: '0.75rem', marginTop: '0.5rem' },
   wave: { color: '#58a6ff' },
   pitch: { color: '#8b949e', fontSize: '0.75rem', marginLeft: '1rem' },
-  exploreHint: {
+  themeCycle: {
     textAlign: 'center' as const,
     marginTop: '0.75rem',
     fontSize: '0.7rem',
     color: '#6e7681',
+    cursor: 'pointer',
+    transition: 'color 0.2s',
   },
-  exploreCode: { color: '#8b949e', fontSize: '0.7rem' },
+  arrow: { color: '#58a6ff' },
 };
 
+const themes = [
+  {
+    name: 'THEME_1_NAME',
+    nextHint: 'THEME_1_NEXT_HINT',
+    constellations: [
+      { title: 'THEME_1_CONSTELLATION_1_TITLE', pitch: 'THEME_1_CONSTELLATION_1_PITCH' },
+      { title: 'THEME_1_CONSTELLATION_2_TITLE', pitch: 'THEME_1_CONSTELLATION_2_PITCH' },
+      { title: 'THEME_1_CONSTELLATION_3_TITLE', pitch: 'THEME_1_CONSTELLATION_3_PITCH' },
+    ],
+    uncharted: [
+      { title: 'THEME_1_UNCHARTED_1_TITLE', pitch: 'THEME_1_UNCHARTED_1_PITCH' },
+      { title: 'THEME_1_UNCHARTED_2_TITLE', pitch: 'THEME_1_UNCHARTED_2_PITCH' },
+      { title: 'THEME_1_UNCHARTED_3_TITLE', pitch: 'THEME_1_UNCHARTED_3_PITCH' },
+    ]
+  },
+  {
+    name: 'THEME_2_NAME',
+    nextHint: 'THEME_2_NEXT_HINT',
+    constellations: [
+      { title: 'THEME_2_CONSTELLATION_1_TITLE', pitch: 'THEME_2_CONSTELLATION_1_PITCH' },
+      { title: 'THEME_2_CONSTELLATION_2_TITLE', pitch: 'THEME_2_CONSTELLATION_2_PITCH' },
+      { title: 'THEME_2_CONSTELLATION_3_TITLE', pitch: 'THEME_2_CONSTELLATION_3_PITCH' },
+    ],
+    uncharted: [
+      { title: 'THEME_2_UNCHARTED_1_TITLE', pitch: 'THEME_2_UNCHARTED_1_PITCH' },
+      { title: 'THEME_2_UNCHARTED_2_TITLE', pitch: 'THEME_2_UNCHARTED_2_PITCH' },
+      { title: 'THEME_2_UNCHARTED_3_TITLE', pitch: 'THEME_2_UNCHARTED_3_PITCH' },
+    ]
+  },
+  {
+    name: 'THEME_3_NAME',
+    nextHint: 'THEME_3_NEXT_HINT',
+    constellations: [
+      { title: 'THEME_3_CONSTELLATION_1_TITLE', pitch: 'THEME_3_CONSTELLATION_1_PITCH' },
+      { title: 'THEME_3_CONSTELLATION_2_TITLE', pitch: 'THEME_3_CONSTELLATION_2_PITCH' },
+      { title: 'THEME_3_CONSTELLATION_3_TITLE', pitch: 'THEME_3_CONSTELLATION_3_PITCH' },
+    ],
+    uncharted: [
+      { title: 'THEME_3_UNCHARTED_1_TITLE', pitch: 'THEME_3_UNCHARTED_1_PITCH' },
+      { title: 'THEME_3_UNCHARTED_2_TITLE', pitch: 'THEME_3_UNCHARTED_2_PITCH' },
+      { title: 'THEME_3_UNCHARTED_3_TITLE', pitch: 'THEME_3_UNCHARTED_3_PITCH' },
+    ]
+  }
+];
+
 export default function App() {
+  const [themeIndex, setThemeIndex] = useState(0);
+  const theme = themes[themeIndex];
+
   useEffect(() => {
     (window as any).appState = {
       view: 'welcome',
@@ -838,18 +949,12 @@ guardrails cli-first e2e-truth`}
             <span style={s.headerArt}><span style={s.star}>✦</span> · <span style={s.star}>☆</span> · <span style={s.star}>✦</span></span>
           </div>
           <ul style={s.list}>
-            <li style={s.listItem}>
-              <span style={s.star}>✦</span> TRENDING_TITLE_1<br/>
-              <span style={s.pitch}>↳ TRENDING_PITCH_1</span>
-            </li>
-            <li style={s.listItem}>
-              <span style={s.star}>✦</span> TRENDING_TITLE_2<br/>
-              <span style={s.pitch}>↳ TRENDING_PITCH_2</span>
-            </li>
-            <li style={s.listItem}>
-              <span style={s.star}>✦</span> TRENDING_TITLE_3<br/>
-              <span style={s.pitch}>↳ TRENDING_PITCH_3</span>
-            </li>
+            {theme.constellations.map((item, i) => (
+              <li key={i} style={s.listItem}>
+                <span style={s.star}>✦</span> {item.title}<br/>
+                <span style={s.pitch}>↳ {item.pitch}</span>
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -859,18 +964,12 @@ guardrails cli-first e2e-truth`}
             <span style={s.headerArt}><span style={s.wave}>~</span> <span style={s.wave}>≈</span> <span style={s.wave}>~</span> <span style={s.wave}>≈</span></span>
           </div>
           <ul style={s.list}>
-            <li style={s.listItem}>
-              <span style={s.star}>✦</span> BLUE_OCEAN_TITLE_1<br/>
-              <span style={s.pitch}>↳ BLUE_OCEAN_PITCH_1</span>
-            </li>
-            <li style={s.listItem}>
-              <span style={s.star}>✦</span> BLUE_OCEAN_TITLE_2<br/>
-              <span style={s.pitch}>↳ BLUE_OCEAN_PITCH_2</span>
-            </li>
-            <li style={s.listItem}>
-              <span style={s.star}>✦</span> BLUE_OCEAN_TITLE_3<br/>
-              <span style={s.pitch}>↳ BLUE_OCEAN_PITCH_3</span>
-            </li>
+            {theme.uncharted.map((item, i) => (
+              <li key={i} style={s.listItem}>
+                <span style={s.star}>✦</span> {item.title}<br/>
+                <span style={s.pitch}>↳ {item.pitch}</span>
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -893,8 +992,8 @@ guardrails cli-first e2e-truth`}
           <code style={s.nextCode}>/ux-planner "I want to build [your idea]"</code>
           <p style={s.nextHint}>chart your course before you build</p>
         </div>
-        <p style={s.exploreHint}>
-          still exploring? ask <code style={s.exploreCode}>"Update my welcome page with more [topic] trends"</code>
+        <p style={s.themeCycle} onClick={() => setThemeIndex((themeIndex + 1) % themes.length)}>
+          <span>{theme.nextHint}</span> <span style={s.arrow}>→</span>
         </p>
 
         {/* Debug container for tests */}
@@ -910,10 +1009,13 @@ guardrails cli-first e2e-truth`}
 
 **Replace placeholders:**
 - `PROJECT_NAME` - User's project name
-- `TRENDING_TITLE_1/2/3` - Idea titles from web search (4.2)
-- `TRENDING_PITCH_1/2/3` - Elevator pitches from web search (4.2)
-- `BLUE_OCEAN_TITLE_1/2/3` - Blue ocean idea titles from web search (4.2)
-- `BLUE_OCEAN_PITCH_1/2/3` - Blue ocean pitches from web search (4.2)
+- For each theme (1, 2, 3), replace from web search results (4.2):
+  - `THEME_N_NAME` - Theme name (e.g., "rising-stars", "hidden-nebulae", "distant-galaxies")
+  - `THEME_N_NEXT_HINT` - Hint for next theme (e.g., "drift toward hidden nebulae", "chart distant galaxies", "return to rising stars")
+  - `THEME_N_CONSTELLATION_1/2/3_TITLE` - Trending idea titles for this theme
+  - `THEME_N_CONSTELLATION_1/2/3_PITCH` - Elevator pitches for trending ideas
+  - `THEME_N_UNCHARTED_1/2/3_TITLE` - Blue ocean idea titles for this theme
+  - `THEME_N_UNCHARTED_1/2/3_PITCH` - Elevator pitches for blue ocean ideas
 
 ---
 
