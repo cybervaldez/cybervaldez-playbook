@@ -1129,6 +1129,9 @@ After restarting, chart your course:
 
 Playbook files are in playbook/ for reference.
 Run /research {tech} in the playbook to add technology-specific reference docs.
+
+Remember: AI is AI, and AI hallucinates.
+Always verify generated code and outputs before shipping.
 ```
 
 ---
