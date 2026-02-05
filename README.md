@@ -14,7 +14,7 @@ If you're a founder, tech lead, or recruiter considering working with me, this r
 - Real patterns from production projects
 
 ### 2. For Founders & Developers Ready to Kickstart An Idea
-- 13 skills guide the AI through planning, building, testing, and consultation*
+- 14 skills guide the AI through planning, building, testing, and consultation*
 - Not sure what to build yet? AI discovers trending ideas to spark your direction
 - No manual setup—everything configured automatically**
 
@@ -68,7 +68,7 @@ New to the playbook? Follow this path:
 - [CLI-First = AI-First Debugging](#cli-first--ai-first-debugging) - Why text over screenshots
 
 ### 2. Learn the Core Skills (10 min)
-- [Skills Reference](#skills-reference) - Overview of all 13 skills
+- [Skills Reference](#skills-reference) - Overview of all 14 skills
 - [The Execution Flow](#the-execution-flow) - Visual pipeline diagram
 - [Skill Prerequisite Matrix](#skill-prerequisite-matrix) - What depends on what
 - [SKILL_INDEX.md](skills/SKILL_INDEX.md) - Quick reference for finding skills

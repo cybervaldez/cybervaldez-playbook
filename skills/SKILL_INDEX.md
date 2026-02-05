@@ -112,3 +112,5 @@ After kickstart, skills are in `.claude/skills/`:
 ├── kaizen/SKILL.md         # /kaizen
 └── agent-browser/SKILL.md  # /agent-browser (utility)
 ```
+
+**Note:** `agent-browser` is a utility reference (Vercel Labs tool), not a playbook-authored skill. It's included in the 14 skill count as it powers browser automation across all E2E skills.
