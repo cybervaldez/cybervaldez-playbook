@@ -14,7 +14,7 @@ If you're a founder, tech lead, or recruiter considering working with me, this r
 - Real patterns from production projects
 
 ### 2. For Founders & Developers Ready to Kickstart An Idea
-- 11 skills guide the AI through planning, building, and testing*
+- 13 skills guide the AI through planning, building, testing, and consultation*
 - Not sure what to build yet? AI discovers trending ideas to spark your direction
 - No manual setup—everything configured automatically**
 
@@ -108,6 +108,7 @@ The problem was never capability - it was direction. Here's what I use now to
 stay pointed at true norths. **The magic isn't in any single skill. It's in
 the transitions between them.**
 
+**Pipeline Skills** (connected, sequential):
 - `/research` - make skills tech-aware
 - `/ux-planner` - think before building
 - `/ui-planner` - establish visual identity
@@ -119,6 +120,10 @@ the transitions between them.**
 - `/e2e-guard` - ensure coverage exists
 - `/e2e` - prove it works end-to-end
 - `/e2e-investigate` - diagnose when it doesn't
+
+**Consultation Skills** (standalone, any time):
+- `/team` - expert personas for strategic advice
+- `/kaizen` - diverse user personas for real-world feedback
 
 ---
 
@@ -718,6 +723,19 @@ Test IDs are the **contract** between implementation and testing. They make the 
 | `/e2e` | Full end-to-end test orchestration | On failure, triggers `/e2e-investigate` |
 | `/e2e-investigate` | Diagnoses test failures, generates actionable tasks | Outputs to `/create-task` |
 
+### Consultation Skills (Non-Pipeline)
+
+These skills provide feedback and advice but don't connect to the pipeline. Use them anytime for perspective.
+
+| Skill | Purpose | Key Difference |
+|-------|---------|----------------|
+| `/team` | Summon expert personas (Marketing, UX, Product, etc.) for strategic advice | Professionals giving expert opinions |
+| `/kaizen` | Gather feedback from diverse fictional personas representing real users | Regular people giving real-world reactions |
+
+**When to use which:**
+- `/team` for strategic questions: "How should I position this feature?" "Is my pricing strategy sound?"
+- `/kaizen` for user perspective: "Will my grandmother understand this?" "Can a colorblind user see my errors?"
+
 ### Utility Skills
 
 | Skill | Purpose |
@@ -1175,6 +1193,14 @@ The UX patterns reference includes timeless principles that apply to any web pro
 │   │   │   ├── SKILL.md
 │   │   │   └── references/
 │   │   │       └── cli-patterns.md
+│   │   ├── team/                        # Expert consultation (non-pipeline)
+│   │   │   ├── SKILL.md
+│   │   │   └── references/
+│   │   │       └── expert-personas.md
+│   │   ├── kaizen/                      # User feedback (non-pipeline)
+│   │   │   ├── SKILL.md
+│   │   │   └── references/
+│   │   │       └── persona-roster.md
 │   │
 │   ├── browser/                        # For browser-testing projects
 │   │   ├── ux-review/
