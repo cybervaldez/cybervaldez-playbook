@@ -30,26 +30,6 @@ Tell the user:
 
 ---
 
-## Prerequisites
-
-All project types require the following installed:
-
-| Tool | Required For | Version |
-|------|-------------|---------|
-| **Python** | python-cli-with-webui, nextjs-with-cli, react-with-cli (agent-browser testing) | 3.10+ |
-| **Node.js** | nextjs-with-cli, react-with-cli (React/Next.js runtime) | 18+ |
-| **Bash** | All types (E2E test scripts) | Any |
-
-**Note:** Python-based and React-based projects require Python because the `agent-browser` CLI tool is Python-based. AI models are trained more extensively on Python, making Python the optimal choice for CLI testing tools that AI agents interact with.
-
-Check installed versions:
-```bash
-python3 --version  # Should be 3.10+ (for python-cli-with-webui, nextjs-with-cli, react-with-cli)
-node --version     # Should be 18+ (for nextjs-with-cli, react-with-cli)
-```
-
----
-
 ## Step 1: Identify Project Type
 
 Ask the user which project type they want:
@@ -62,9 +42,28 @@ Ask the user which project type they want:
 
 ---
 
-## Step 2: Gather Project Info
+## Step 2: Check Prerequisites
 
-**The current directory is the project root.** All project files are created here. Playbook files will be moved into `playbook/` in Step 9.
+Based on the selected project type, verify required tools:
+
+### For python-cli-with-webui:
+```bash
+python3 --version  # Should be 3.10+
+```
+
+### For nextjs-with-cli and react-with-cli:
+```bash
+python3 --version  # Should be 3.10+
+node --version     # Should be 18+
+```
+
+**Note:** All types require Python because `agent-browser` (E2E testing) is Python-based.
+
+---
+
+## Step 3: Gather Project Info
+
+**The current directory is the project root.** All project files are created here. Playbook files will be moved into `playbook/` in Step 10.
 
 Auto-detect:
 - **PROJECT_NAME** — use the current directory name (`basename "$PWD"`)
@@ -84,7 +83,7 @@ Auto-detect or use defaults for:
 
 ---
 
-## Step 3: Create Welcome Page Structure
+## Step 4: Create Welcome Page Structure
 
 **All files are created in the current directory (project root).**
 
@@ -93,12 +92,12 @@ Auto-detect or use defaults for:
 ```
 PROJECT_NAME/                      # Current directory = project root
 ├── .gitignore          # Git ignore rules (see template below)
-├── app.py              # Flask app with /api/status endpoint
+├── app.py              # Flask app serving static files
 ├── start.sh            # Server start script
 ├── webui/
-│   └── index.html      # Welcome page (see Step 5)
+│   └── index.html      # Welcome page (see Step 6)
 └── tests/
-    └── test_status.sh  # Bash test that curls /api/status
+    └── test_welcome.sh # Bash E2E test with agent-browser
 ```
 
 **`.gitignore` template (used by both project types):**
@@ -132,7 +131,7 @@ tests/e2e-runs/
 
 **app.py template:**
 ```python
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, send_from_directory
 import os
 
 app = Flask(__name__, static_folder='webui', static_url_path='')
@@ -140,14 +139,6 @@ app = Flask(__name__, static_folder='webui', static_url_path='')
 @app.route('/')
 def index():
     return send_from_directory('webui', 'index.html')
-
-@app.route('/api/status')
-def status():
-    return jsonify({
-        "project": "PROJECT_NAME",
-        "status": "kickstarted",
-        "next_step": "Run /ux-planner to plan your first feature"
-    })
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
@@ -162,18 +153,30 @@ source venv/bin/activate 2>/dev/null || true
 python app.py
 ```
 
-**tests/test_status.sh template:**
+**tests/test_welcome.sh template:**
 ```bash
 #!/bin/bash
-# Test that /api/status returns valid JSON
-set -e
+# tests/test_welcome.sh
+set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://localhost:8080}"
 
-response=$(curl -sf "$BASE_URL/api/status")
-echo "$response" | jq -e '.status == "kickstarted"' > /dev/null
+cleanup() {
+    agent-browser close 2>/dev/null || true
+}
+trap cleanup EXIT
 
-echo "PASS: /api/status returns valid kickstarted status"
+agent-browser open "$BASE_URL"
+sleep 1
+
+# Check welcome message
+agent-browser snapshot -c | grep -q "Welcome to PROJECT_NAME"
+
+# Verify window state
+STATE=$(agent-browser eval "window.appState?.initialized" 2>/dev/null)
+[ "$STATE" = "true" ] && echo "  [PASS] App state initialized"
+
+echo "PASS: Welcome page loads successfully"
 ```
 
 ### For nextjs-with-cli:
@@ -183,9 +186,11 @@ PROJECT_NAME/                      # Current directory = project root
 ├── .gitignore          # Git ignore rules (see template below)
 ├── package.json
 ├── tsconfig.json
-├── src/
-│   ├── App.tsx         # Welcome page component (see Step 5)
+├── next.config.js
+├── pages/
 │   └── index.tsx       # Entry point
+├── src/
+│   └── App.tsx         # Welcome page component (see Step 6)
 └── tests/
     └── test_welcome.sh # Bash E2E test with agent-browser
 ```
@@ -239,6 +244,48 @@ STATE=$(agent-browser eval "window.appState?.initialized" 2>/dev/null)
 [ "$STATE" = "true" ] && echo "  [PASS] App state initialized"
 
 echo "PASS: Welcome page loads successfully"
+```
+
+**pages/index.tsx template:**
+```tsx
+import App from '../src/App';
+
+export default function Home() {
+  return <App />;
+}
+```
+
+**next.config.js template:**
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+};
+
+module.exports = nextConfig;
+```
+
+**tsconfig.json template:**
+```json
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}
 ```
 
 ### For react-with-cli:
@@ -310,9 +357,72 @@ STATE=$(agent-browser eval "window.appState?.initialized" 2>/dev/null)
 echo "PASS: Welcome page loads successfully"
 ```
 
+**src/main.tsx template:**
+```tsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+```
+
+**index.html template (Vite root):**
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PROJECT_NAME</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+```
+
+**vite.config.ts template:**
+```ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+});
+```
+
+**tsconfig.json template:**
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}
+```
+
 ---
 
-## Step 4: AI Discovers Trending Ideas
+## Step 5: AI Discovers Trending Ideas
 
 **The AI discovers what's trending to spark your direction:**
 
@@ -320,23 +430,29 @@ Before generating the welcome page, the AI searches the web for:
 
 ### For python-cli-with-webui, nextjs-with-cli, and react-with-cli:
 
-1. **Founder-focused ideas** — AI discovers business-oriented tools, SaaS products, or app ideas that founders are building and shipping right now
+1. **Founder-focused ideas** — AI discovers tools that work with the playbook pipeline
    - Example queries: "trending micro-SaaS ideas for solo founders 2026", "most profitable indie hacker tools 2026", "business tools founders are building 2026"
-   - Focus on **buildable products** — tools, dashboards, automation, APIs — not vague concepts
-   - Each idea should feel like something a solo founder could ship
+   - Focus on **buildable products** with a clear value proposition. For each idea, capture:
+     - **Title**: Short name (3-5 words)
+     - **Pitch**: One-line elevator pitch explaining the value (no numbers/percentages)
+   - Ideas MUST be playbook-compatible:
+     - Has UI components (testable via agent-browser)
+     - Has API endpoints (testable via curl)
+     - Has observable state (window.appState or DOM)
+     - Behavior is deterministic (same input → same output)
 
-2. **Blue ocean opportunities** — AI discovers underserved niches, untapped markets,
-   or industries where few competitors exist
+2. **Blue ocean opportunities** — AI discovers underserved niches that are still playbook-compatible
    - Example queries: "underserved micro-SaaS niches 2026", "blue ocean SaaS no competition 2026"
    - Focus on gaps in the market — regulated verticals, overlooked industries, compliance needs
+   - Same playbook compatibility requirements as above
 
 **These AI-discovered ideas populate the "CONSTELLATIONS" and "UNCHARTED" sections in the welcome page.**
 
 ---
 
-## Step 5: Welcome Page Content
+## Step 6: Welcome Page Content
 
-Generate the welcome page with dynamic trending content from Step 4.
+Generate the welcome page with dynamic trending content from Step 5.
 
 ### For python-cli-with-webui (webui/index.html):
 
@@ -434,6 +550,11 @@ Generate the welcome page with dynamic trending content from Step 4.
             font-size: 0.85rem;
         }
         .explore-list .star { color: #f0883e; }
+        .explore-list .pitch {
+            color: #8b949e;
+            font-size: 0.75rem;
+            margin-left: 1rem;
+        }
         .nav-list {
             list-style: none;
             padding: 0;
@@ -487,9 +608,12 @@ guardrails cli-first e2e-truth</pre>
                 <span class="header-art"><span class="star">✦</span> · <span class="star">☆</span> · <span class="star">✦</span></span>
             </div>
             <ul class="explore-list">
-                <li><span class="star">✦</span> TRENDING_IDEA_1</li>
-                <li><span class="star">✦</span> TRENDING_IDEA_2</li>
-                <li><span class="star">✦</span> TRENDING_IDEA_3</li>
+                <li><span class="star">✦</span> TRENDING_TITLE_1<br>
+                    <span class="pitch">↳ TRENDING_PITCH_1</span></li>
+                <li><span class="star">✦</span> TRENDING_TITLE_2<br>
+                    <span class="pitch">↳ TRENDING_PITCH_2</span></li>
+                <li><span class="star">✦</span> TRENDING_TITLE_3<br>
+                    <span class="pitch">↳ TRENDING_PITCH_3</span></li>
             </ul>
         </div>
 
@@ -499,9 +623,12 @@ guardrails cli-first e2e-truth</pre>
                 <span class="header-art"><span class="wave">~</span> <span class="wave">≈</span> <span class="wave">~</span> <span class="wave">≈</span></span>
             </div>
             <ul class="explore-list">
-                <li><span class="star">✦</span> BLUE_OCEAN_IDEA_1</li>
-                <li><span class="star">✦</span> BLUE_OCEAN_IDEA_2</li>
-                <li><span class="star">✦</span> BLUE_OCEAN_IDEA_3</li>
+                <li><span class="star">✦</span> BLUE_OCEAN_TITLE_1<br>
+                    <span class="pitch">↳ BLUE_OCEAN_PITCH_1</span></li>
+                <li><span class="star">✦</span> BLUE_OCEAN_TITLE_2<br>
+                    <span class="pitch">↳ BLUE_OCEAN_PITCH_2</span></li>
+                <li><span class="star">✦</span> BLUE_OCEAN_TITLE_3<br>
+                    <span class="pitch">↳ BLUE_OCEAN_PITCH_3</span></li>
             </ul>
         </div>
 
@@ -513,6 +640,7 @@ guardrails cli-first e2e-truth</pre>
             <ul class="nav-list">
                 <li><span class="cmd">/ux-planner</span>   <span class="desc">— chart your first feature</span></li>
                 <li><span class="cmd">/create-task</span>  <span class="desc">— build with tests baked in</span></li>
+                <li><span class="cmd">/research</span>     <span class="desc">— evaluate tech for your stack</span></li>
                 <li><span class="cmd">/coding-guard</span> <span class="desc">— check for anti-patterns</span></li>
                 <li><span class="cmd">/e2e</span>          <span class="desc">— prove it works end-to-end</span></li>
             </ul>
@@ -523,7 +651,20 @@ guardrails cli-first e2e-truth</pre>
             <code>/ux-planner "I want to build [your idea]"</code>
             <p class="hint">chart your course before you build</p>
         </div>
+
+        <!-- Debug container for tests -->
+        <div id="app-debug" style="display: none;">
+            <pre id="debug-state"></pre>
+            <div id="debug-log"></div>
+        </div>
     </div>
+
+    <script>
+        window.appState = {
+            view: 'welcome',
+            initialized: true
+        };
+    </script>
 </body>
 </html>
 ```
@@ -607,6 +748,7 @@ const s = {
   nextCode: { color: '#7ee787', fontSize: '0.85rem' },
   nextHint: { color: '#8b949e', fontSize: '0.75rem', marginTop: '0.5rem' },
   wave: { color: '#58a6ff' },
+  pitch: { color: '#8b949e', fontSize: '0.75rem', marginLeft: '1rem' },
 };
 
 export default function App() {
@@ -671,9 +813,18 @@ guardrails cli-first e2e-truth`}
             <span style={s.headerArt}><span style={s.star}>✦</span> · <span style={s.star}>☆</span> · <span style={s.star}>✦</span></span>
           </div>
           <ul style={s.list}>
-            <li style={s.listItem}><span style={s.star}>✦</span> TRENDING_IDEA_1</li>
-            <li style={s.listItem}><span style={s.star}>✦</span> TRENDING_IDEA_2</li>
-            <li style={s.listItem}><span style={s.star}>✦</span> TRENDING_IDEA_3</li>
+            <li style={s.listItem}>
+              <span style={s.star}>✦</span> TRENDING_TITLE_1<br/>
+              <span style={s.pitch}>↳ TRENDING_PITCH_1</span>
+            </li>
+            <li style={s.listItem}>
+              <span style={s.star}>✦</span> TRENDING_TITLE_2<br/>
+              <span style={s.pitch}>↳ TRENDING_PITCH_2</span>
+            </li>
+            <li style={s.listItem}>
+              <span style={s.star}>✦</span> TRENDING_TITLE_3<br/>
+              <span style={s.pitch}>↳ TRENDING_PITCH_3</span>
+            </li>
           </ul>
         </div>
 
@@ -683,9 +834,18 @@ guardrails cli-first e2e-truth`}
             <span style={s.headerArt}><span style={s.wave}>~</span> <span style={s.wave}>≈</span> <span style={s.wave}>~</span> <span style={s.wave}>≈</span></span>
           </div>
           <ul style={s.list}>
-            <li style={s.listItem}><span style={s.star}>✦</span> BLUE_OCEAN_IDEA_1</li>
-            <li style={s.listItem}><span style={s.star}>✦</span> BLUE_OCEAN_IDEA_2</li>
-            <li style={s.listItem}><span style={s.star}>✦</span> BLUE_OCEAN_IDEA_3</li>
+            <li style={s.listItem}>
+              <span style={s.star}>✦</span> BLUE_OCEAN_TITLE_1<br/>
+              <span style={s.pitch}>↳ BLUE_OCEAN_PITCH_1</span>
+            </li>
+            <li style={s.listItem}>
+              <span style={s.star}>✦</span> BLUE_OCEAN_TITLE_2<br/>
+              <span style={s.pitch}>↳ BLUE_OCEAN_PITCH_2</span>
+            </li>
+            <li style={s.listItem}>
+              <span style={s.star}>✦</span> BLUE_OCEAN_TITLE_3<br/>
+              <span style={s.pitch}>↳ BLUE_OCEAN_PITCH_3</span>
+            </li>
           </ul>
         </div>
 
@@ -697,6 +857,7 @@ guardrails cli-first e2e-truth`}
           <ul style={s.list}>
             <li style={s.navItem}><span style={s.cmd}>/ux-planner</span>   <span style={s.desc}>— chart your first feature</span></li>
             <li style={s.navItem}><span style={s.cmd}>/create-task</span>  <span style={s.desc}>— build with tests baked in</span></li>
+            <li style={s.navItem}><span style={s.cmd}>/research</span>     <span style={s.desc}>— evaluate tech for your stack</span></li>
             <li style={s.navItem}><span style={s.cmd}>/coding-guard</span> <span style={s.desc}>— check for anti-patterns</span></li>
             <li style={s.navItem}><span style={s.cmd}>/e2e</span>          <span style={s.desc}>— prove it works end-to-end</span></li>
           </ul>
@@ -721,12 +882,14 @@ guardrails cli-first e2e-truth`}
 
 **Replace placeholders:**
 - `PROJECT_NAME` - User's project name
-- `TRENDING_IDEA_1/2/3` - From web search results (Step 4)
-- `BLUE_OCEAN_IDEA_1/2/3` - From blue ocean web search results (Step 4)
+- `TRENDING_TITLE_1/2/3` - Idea titles from web search (Step 4)
+- `TRENDING_PITCH_1/2/3` - Elevator pitches from web search (Step 4)
+- `BLUE_OCEAN_TITLE_1/2/3` - Blue ocean idea titles from web search (Step 4)
+- `BLUE_OCEAN_PITCH_1/2/3` - Blue ocean pitches from web search (Step 4)
 
 ---
 
-## Step 6: Install Skills
+## Step 7: Install Skills
 
 Copy skills from `skills/` (still in project root at this point) to `.claude/skills/`:
 
@@ -750,7 +913,7 @@ This includes:
 **Step 6.2: Copy shared references and research skill:**
 ```bash
 cp skills/TECH_CONTEXT.md .claude/skills/
-cp -r .claude/skills/research .claude/skills/
+cp -r skills/research .claude/skills/
 ```
 
 This includes:
@@ -848,7 +1011,7 @@ Core skills from cybervaldez-playbook are installed in `.claude/skills/`.
 
 ---
 
-## Step 7: Verify Welcome Page Works
+## Step 8: Verify Welcome Page Works
 
 ### For python-cli-with-webui, nextjs-with-cli, and react-with-cli:
 
@@ -858,36 +1021,23 @@ Core skills from cybervaldez-playbook are installed in `.claude/skills/`.
 
 2. **Open the welcome page in browser** at `http://localhost:{PORT}`
 
-3. **Verify /api/status returns valid JSON:**
+3. **Verify trending ideas are displayed** on the welcome page
+
+4. **For nextjs-with-cli or react-with-cli:** Run the basic test:
    ```bash
-   curl -sf http://localhost:{PORT}/api/status | jq .
+   bash tests/test_welcome.sh
    ```
 
-   Expected response:
-   ```json
-   {
-     "project": "PROJECT_NAME",
-     "status": "kickstarted",
-     "next_step": "Run /ux-planner to plan your first feature"
-   }
-   ```
-
-4. **Verify trending ideas are displayed** on the welcome page
-
-5. **Run the basic test:**
-   - For python: `bash tests/test_status.sh`
-   - For nextjs-with-cli or react-with-cli: `bash tests/test_welcome.sh`
-
-6. **Verify project structure exists:**
+5. **Verify project structure exists:**
    ```bash
    # Confirm all expected pieces are in place
    ls .claude/skills/           # Skills installed
-   ls tests/                    # Tests exist
+   ls tests/                    # Tests directory exists
    ```
 
 ---
 
-## Step 8: Initialize Git (ASK USER)
+## Step 9: Initialize Git (ASK USER)
 
 Ask the user: **"The testing skills use git diff to track changes. Re-initialize the git repository for your project?"**
 
@@ -904,9 +1054,9 @@ This replaces the playbook's git history with a clean project history.
 
 ---
 
-## Step 9: Organize Playbook Files (AUTOMATIC)
+## Step 10: Organize Playbook Files (AUTOMATIC)
 
-**After welcome page is confirmed working, move playbook files into `playbook/` to keep the project root clean. Skills have already been copied to `.claude/skills/` in Step 6.**
+**After welcome page is confirmed working, move playbook files into `playbook/` to keep the project root clean. Skills have already been copied to `.claude/skills/` in Step 7.**
 
 ```bash
 mkdir -p playbook
@@ -950,25 +1100,25 @@ PROJECT_NAME/                    # Current directory = project root
 
 ---
 
-## Step 10: Verify & Launch
+## Step 11: Verify & Launch
 
-### 10.1: Verify final structure
+### 11.1: Verify final structure
 
 ```bash
 # Confirm everything landed where it should
 ls .claude/skills/           # Active skills installed
 ls playbook/                 # Playbook files organized
 ls playbook/skills/          # Source skills preserved
-ls tests/                    # Tests exist
+ls tests/                    # Tests directory exists
 ```
 
-### 10.2: Start the server and verify
+### 11.2: Start the server and verify
 
 **For python-cli-with-webui:**
 ```bash
 chmod +x start.sh && ./start.sh &
 sleep 2
-curl -sf http://localhost:8080/api/status | jq .
+curl -sf http://localhost:8080 | head -20
 ```
 
 **For nextjs-with-cli:**
@@ -987,7 +1137,7 @@ curl -sf http://localhost:5173 | head -20
 
 If the server starts and responds, the kickstart is successful.
 
-### 10.3: Tell the user
+### 11.3: Tell the user
 
 ```
 ★ PROJECT_NAME is kickstarted!
@@ -1003,6 +1153,7 @@ up the new skills from .claude/skills/:
 
   /ux-planner   — chart your first feature
   /create-task  — build with tests baked in
+  /research     — evaluate tech for your stack
   /coding-guard — check for anti-patterns
   /e2e          — prove it works end-to-end
 
