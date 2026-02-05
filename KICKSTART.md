@@ -591,6 +591,16 @@ Generate the welcome page with dynamic trending content from 4.2.
             font-size: 0.75rem;
             margin-top: 0.5rem;
         }
+        .explore-hint {
+            text-align: center;
+            margin-top: 0.75rem;
+            font-size: 0.7rem;
+            color: #6e7681;
+        }
+        .explore-hint code {
+            color: #8b949e;
+            font-size: 0.7rem;
+        }
     </style>
 </head>
 <body>
@@ -656,6 +666,9 @@ guardrails cli-first e2e-truth</pre>
             <code>/ux-planner "I want to build [your idea]"</code>
             <p class="hint">chart your course before you build</p>
         </div>
+        <p class="explore-hint">
+            still exploring? ask <code>"Update my welcome page with more [topic] trends"</code>
+        </p>
 
         <!-- Debug container for tests -->
         <div id="app-debug" style="display: none;">
@@ -754,6 +767,13 @@ const s = {
   nextHint: { color: '#8b949e', fontSize: '0.75rem', marginTop: '0.5rem' },
   wave: { color: '#58a6ff' },
   pitch: { color: '#8b949e', fontSize: '0.75rem', marginLeft: '1rem' },
+  exploreHint: {
+    textAlign: 'center' as const,
+    marginTop: '0.75rem',
+    fontSize: '0.7rem',
+    color: '#6e7681',
+  },
+  exploreCode: { color: '#8b949e', fontSize: '0.7rem' },
 };
 
 export default function App() {
@@ -873,6 +893,9 @@ guardrails cli-first e2e-truth`}
           <code style={s.nextCode}>/ux-planner "I want to build [your idea]"</code>
           <p style={s.nextHint}>chart your course before you build</p>
         </div>
+        <p style={s.exploreHint}>
+          still exploring? ask <code style={s.exploreCode}>"Update my welcome page with more [topic] trends"</code>
+        </p>
 
         {/* Debug container for tests */}
         <div id="app-debug" style={{ display: 'none' }}>
