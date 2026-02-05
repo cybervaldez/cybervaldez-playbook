@@ -735,7 +735,72 @@ agent-browser close
 
 ## Technology Research
 
-Run `/research {tech}` to research a technology and produce reference documents that make base skills tech-aware. Reference docs are installed into skill `references/` directories and copied to projects during kickstart.
+> **IMPORTANT:** Technology research happens in your **kickstarted project**, not the playbook repo. This is by design:
+> - Projects have real context (file structure, conventions, existing techs)
+> - Reference docs are project-specific, not universal
+> - Without project context, research is speculative
+
+The playbook uses **two-phase research** to make skills tech-aware without slowing developers down:
+
+### Phase 1: Tech Assessment (On Install/Mention)
+
+When you mention a new technology in your **kickstarted project**, run `/research {tech}` to create a lightweight assessment:
+
+```
+/research xstate
+/research tanstack-query
+```
+
+**The research flow includes user confirmation:**
+1. AI researches the technology via web search
+2. AI presents findings (domain, pipeline impact, key patterns)
+3. **You confirm or correct** the classification
+4. Only after confirmation: `techs/{tech}/README.md` is saved
+
+This confirmation step ensures domain classification matches your actual use case, not assumptions.
+
+### Phase 2: Skill Reference (Automatic)
+
+When a skill is invoked with tech context, it automatically:
+1. Checks for `references/{tech}.md` in its directory
+2. If missing AND the tech's domain affects the skill, produces the reference doc
+3. Applies tech-specific patterns during execution
+
+This lazy evaluation means docs are produced when needed, based on actual usage context.
+
+### Domain Classification Table
+
+| Domain | Examples | Skills Affected |
+|--------|----------|-----------------|
+| **State Management** | XState, Redux, Zustand, Jotai | coding-guard, cli-first, create-task |
+| **UI Components** | Radix, Shadcn, MUI, Chakra | ux-planner, ux-review, create-task |
+| **Data Fetching** | TanStack Query, SWR, tRPC, Apollo | coding-guard, e2e-guard, create-task |
+| **Form Handling** | React Hook Form, Formik, Zod | ux-planner, coding-guard, e2e-guard |
+| **Animation** | Framer Motion, GSAP, React Spring | ux-review, e2e (wait patterns) |
+| **Routing** | React Router, TanStack Router | create-task, e2e, e2e-guard |
+| **Testing Tools** | Playwright, Vitest, Jest | e2e, e2e-guard, e2e-investigate |
+| **Build Tools** | Vite, Turbopack, esbuild | create-task, e2e (server startup) |
+| **Styling** | Tailwind, CSS Modules | ux-review, ux-planner |
+| **Auth** | NextAuth, Clerk, Auth0 | coding-guard, e2e, create-task |
+
+### Skill Concern Matrix
+
+Each skill evaluates specific concerns when deciding whether to produce a tech reference:
+
+| Skill | Concerns |
+|-------|----------|
+| **create-task** | File structure? Scaffolding? Test organization? Debug containers? |
+| **coding-guard** | Anti-patterns? Silent failures? State mutation? Error handling? |
+| **cli-first** | State exposure? TestID conventions? Verification commands? Token costs? |
+| **ux-planner** | Component constraints? Async feedback? Accessibility? Form patterns? |
+| **e2e-guard** | Coverage patterns? Element selection? API verification? State assertions? |
+| **e2e** | Server startup? Artifact paths? Timing/waits? Cleanup? |
+| **e2e-investigate** | Failure patterns? Log formats? Reproduction? Debug tools? |
+| **ux-review** | Visual patterns? Animations? Design system? Responsive? |
+
+**Threshold:** If 2+ concerns are relevant, the skill produces a reference doc.
+
+See `skills/TECH_CONTEXT.md` for the complete reference.
 
 ---
 
@@ -1011,6 +1076,7 @@ See `KICKSTART.md` "Post-Kickstart: Optional Customizations" section for customi
 
 | File | Purpose |
 |------|---------|
+| `skills/TECH_CONTEXT.md` | Domain classification table and skill concern matrix for tech research |
 | `skills/core/ux-planner/references/ux-patterns.md` | UX laws, principles, and patterns database |
 | `skills/core/create-task/references/testing-conventions.md` | Testing patterns and best practices |
 | `skills/core/cli-first/references/cli-patterns.md` | Token cost table and universal CLI-first patterns |
@@ -1037,9 +1103,8 @@ The UX patterns reference includes timeless principles that apply to any web pro
 ├── README.md                           # This file
 ├── KICKSTART.md                        # AI prompt guide for kickstarting projects
 ├── LICENSE                             # MIT License
-├── techs/                              # Technology research artifacts
-│   ├── README.md                       # Technology overview
 ├── skills/
+│   ├── TECH_CONTEXT.md                 # Domain classification & skill concern matrix
 │   ├── core/                           # Always installed (all project types)
 │   │   ├── ux-planner/
 │   │   │   ├── SKILL.md
@@ -1072,6 +1137,8 @@ The UX patterns reference includes timeless principles that apply to any web pro
 **After kickstart, your project has:**
 ```
 your-project/
+├── techs/                              # Technology research output (project-specific)
+│   └── README.md                       # List of researched technologies
 ├── playbook/
 │   ├── PLAYBOOK_README.md              # Reference documentation
 │   ├── LICENSE                         # Playbook license
@@ -1082,6 +1149,8 @@ your-project/
 │   ├── PROJECT_CONFIG.md               # Your configured values
 │   ├── PROJECT_CONVENTIONS.md          # Project-type conventions
 │   └── skills/                         # Installed skills
+│       ├── TECH_CONTEXT.md             # Domain classification & concern matrix
+│       ├── research/                   # Technology research skill
 │       ├── ux-planner/                 # (from core/)
 │       ├── create-task/                # (from core/)
 │       ├── coding-guard/               # (from core/)

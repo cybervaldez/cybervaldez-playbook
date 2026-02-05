@@ -21,12 +21,12 @@
 
 ## Pre-Flight Check
 
-Before proceeding, check if `techs/README.md` exists at the project root.
+Before proceeding, check if `.claude/skills/research/SKILL.md` exists at the current directory.
 
-If it does, **STOP** — this is the playbook source repo, not a project to kickstart.
+If it does, **STOP** — this is already a kickstarted project or the playbook source repo.
 
 Tell the user:
-> "This directory appears to be the playbook repo itself (`techs/README.md` found). KICKSTART is for new projects, not the playbook source."
+> "This directory already has skills installed (`.claude/skills/research/SKILL.md` found). KICKSTART is for new projects only."
 
 ---
 
@@ -747,10 +747,38 @@ This includes:
 - coding-guard (code quality)
 - cli-first (observability)
 
+**Step 6.2: Copy shared references and research skill:**
+```bash
+cp skills/TECH_CONTEXT.md .claude/skills/
+cp -r .claude/skills/research .claude/skills/
+```
+
+This includes:
+- TECH_CONTEXT.md (domain classification & skill concern matrix)
+- research (technology research skill)
+
+**Step 6.3: Create techs/ directory for project-specific research:**
+```bash
+mkdir -p techs
+cat > techs/README.md << 'EOF'
+# Technologies
+
+Research artifacts for technologies used in this project.
+
+Run `/research {tech}` to research a technology and create reference docs for skills.
+
+**Note:** Research happens here in your project, not in the playbook source. This ensures research has real project context (file structure, conventions, existing techs) for deterministic, useful reference docs.
+
+## Researched Technologies
+
+| Technology | Status | Domain | Description |
+|------------|--------|--------|-------------|
+EOF
+```
 
 ### For python-cli-with-webui, nextjs-with-cli, and react-with-cli:
 
-**Step 6.2: Copy browser skills:**
+**Step 6.4: Copy browser skills:**
 ```bash
 cp -r skills/browser/* .claude/skills/
 ```
@@ -776,7 +804,7 @@ This includes:
 | `{{TESTS_PATH}}` | `tests/` |
 | `{{OUTPUTS_PATH}}` | `public/outputs` or `outputs` |
 
-**Note:** Run `/research {tech}` in the playbook to add technology-specific reference docs to skills.
+**Note:** Run `/research {tech}` in your project to add technology-specific reference docs to skills.
 
 **Before generating PROJECT_CONFIG.md, capture the playbook source URL:**
 

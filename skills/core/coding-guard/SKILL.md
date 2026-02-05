@@ -3,6 +3,24 @@ name: coding-guard
 description: Audit recent code changes for coding convention violations. Use after implementing changes to verify they follow project standards.
 ---
 
+## Tech Context Detection
+
+Before executing, check for technology-specific anti-patterns:
+
+1. **Scan changed files** for technology imports/usage
+2. **For each tech detected:**
+   - Check if `techs/{tech}/README.md` exists — if not, run `/research {tech}` first
+   - Check if `references/{tech}.md` exists in this skill's directory
+   - If not AND tech's domain affects this skill, produce reference doc:
+     - Read `skills/TECH_CONTEXT.md` for the Skill Concern Matrix
+     - Evaluate concerns: Anti-patterns? Silent failures? State mutation gotchas? Error handling?
+     - If 2+ concerns relevant → produce `references/{tech}.md`
+3. **Read relevant reference docs** and check for tech-specific anti-patterns
+
+**Domains that affect this skill:** State Management, Data Fetching, Form Handling, Auth
+
+---
+
 # Coding Guard - Post-Implementation Audit
 
 Run this skill after implementing changes to verify they follow project coding conventions.

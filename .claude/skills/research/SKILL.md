@@ -1,41 +1,44 @@
 ---
 name: research
-description: Research technologies and produce reference documents that make base skills tech-aware.
+description: Research technologies and classify their impact on the playbook pipeline.
 argument-hint: <technology name>
 ---
 
-# /research — Technology Research
+# /research — Technology Research (Phase 1)
 
-Research a technology and produce reference documents for playbook skills. Evaluates each base skill and produces a reference doc only where the tech genuinely adds context.
+Research a technology and classify its domain and pipeline impact. This is **Phase 1** of two-phase research:
+
+1. **Phase 1 (this skill):** Domain classification → `techs/{tech}/README.md`
+2. **Phase 2 (automatic):** Skill-specific references produced lazily when skills are invoked with the tech
+
+**IMPORTANT:** Research should happen in your **kickstarted project**, not the playbook source. Projects have real context (file structure, conventions, existing techs) that makes research deterministic and useful.
 
 ## What It Does
 
 1. Identify and research the technology via web search
-2. Walk through each base skill — evaluate if {tech} changes how it operates
-3. Produce reference docs in relevant skill `references/` directories
-4. Produce a skill recommendations document
+2. Classify the tech's domain(s)
+3. **Present findings to user for confirmation**
+4. Document pipeline impact (which skills are affected)
+5. Produce `techs/{tech}/README.md` (only after user confirms)
 
-The tech name (e.g., "xstate") is used in the filename for greppability. Prefix/suffix allowed for context (e.g., `xstate-testing.md`).
+**Note:** Skill-specific reference docs are NOT produced here. They are produced automatically when a skill is invoked with this tech (see `skills/TECH_CONTEXT.md`).
 
 ## Usage
 
+```
 /research xstate
-/research remotion
+/research tanstack-query
 /research {any-technology-name}
+```
 
 ---
 
 ## Step 1: Check for Existing Research
 
-Search for `{tech}` in all `references/` directories across `skills/core/` and `skills/browser/`:
+Check if `techs/{tech}/README.md` exists:
 
-```
-skills/core/*/references/*{tech}*
-skills/browser/*/references/*{tech}*
-```
-
-- If reference docs exist → report what's already there. Ask user: update existing docs or done?
-- If none exist → proceed to Step 2.
+- If exists → report what's there. Ask user: update existing research or done?
+- If not → proceed to Step 2.
 
 ---
 
@@ -45,109 +48,173 @@ Web search for "{tech} javascript library" or "{tech} npm package" to find match
 
 If multiple matches:
 
+```
 Which {tech}?
   1. {Best match} — {one-line description}
   2. {Second match} — {one-line description}
   3. {Third match} — {one-line description}
   4. Something else
+```
 
 If one clear match, confirm directly:
+```
 {tech}: {one-line description}. Correct?
+```
 
 ---
 
-## Step 3: Research
+## Step 3: Research & Domain Classification
 
 Using the confirmed identity, web search for:
-- Core concepts and API patterns
-- Ecosystem (packages, tools, integrations)
-- Testing approaches and patterns
-- Common gotchas and anti-patterns
-- How it integrates with React/Next.js projects
+- Core concepts (what problem does it solve?)
+- Ecosystem (related packages, integrations)
+- Common patterns and anti-patterns
+- Testing approaches
+
+Then classify into one or more domains using the Domain Classification Table:
+
+| Domain | Examples | Skills Affected |
+|--------|----------|-----------------|
+| **State Management** | XState, Redux, Zustand, Jotai | coding-guard, cli-first, create-task |
+| **UI Components** | Radix, Shadcn, MUI, Chakra | ux-planner, ux-review, create-task |
+| **Data Fetching** | TanStack Query, SWR, tRPC, Apollo | coding-guard, e2e-guard, create-task |
+| **Form Handling** | React Hook Form, Formik, Zod | ux-planner, coding-guard, e2e-guard |
+| **Animation** | Framer Motion, GSAP, React Spring | ux-review, e2e (wait patterns) |
+| **Routing** | React Router, TanStack Router | create-task, e2e, e2e-guard |
+| **Testing Tools** | Playwright, Vitest, Jest | e2e, e2e-guard, e2e-investigate |
+| **Build Tools** | Vite, Turbopack, esbuild | create-task, e2e (server startup) |
+| **Styling** | Tailwind, CSS Modules | ux-review, ux-planner |
+| **Auth** | NextAuth, Clerk, Auth0 | coding-guard, e2e, create-task |
 
 ---
 
-## Step 4: Evaluate Each Base Skill
+## Step 4: Present & Confirm (REQUIRED)
 
-Read each skill's SKILL.md and ask: "Does {tech} change how this skill operates? Would a developer need {tech}-specific guidance when running this skill?"
+**CRITICAL:** Present research findings to user and wait for confirmation before saving.
 
-Walk through each — **skip if no genuine context to add**:
-
-| Skill | Evaluate for |
-|-------|-------------|
-| `skills/core/create-task/` | Scaffolding patterns, file structures, conventions |
-| `skills/core/coding-guard/` | Code quality concerns, anti-patterns to check |
-| `skills/core/ux-planner/` | UX planning, component design implications |
-| `skills/core/cli-first/` | CLI tooling, terminal workflows |
-| `skills/browser/e2e/` | E2E test structure or execution |
-| `skills/browser/e2e-guard/` | Test coverage semantics |
-| `skills/browser/e2e-investigate/` | Unique failure modes to diagnose |
-| `skills/browser/ux-review/` | Visual review criteria |
-
-### Present suggestions to the user
-
-For each skill where {tech} adds genuine context, present the suggested reference doc with:
-- **Skill name** and proposed **filename**
-- **Purpose** — what the doc will cover and why this skill needs it
-
-Example format:
+Present findings in this format:
 
 ```
-Suggested reference docs for {tech}:
+Based on my research:
 
-1. create-task/references/{tech}.md
-   Purpose: Scaffolding patterns for {tech} — file structure conventions,
-   boilerplate templates, naming patterns.
+**{tech}:** {one paragraph description of what it is and what problem it solves}
 
-2. coding-guard/references/{tech}.md
-   Purpose: Anti-patterns specific to {tech} — common misuse patterns
-   to flag during code review.
+**Domain(s):** {domain classification from table above}
 
-3. (skipped) ux-planner — {tech} doesn't change UX planning guidance.
-4. (skipped) cli-first — no {tech}-specific CLI patterns.
-...
+**Pipeline Impact:**
+- {skill}: {why this skill is affected}
+- {skill}: {why this skill is affected}
+- (other skills not affected)
 
-Proceed with all, or discuss any of these first?
+**Key Patterns:**
+- {pattern 1}
+- {pattern 2}
+- {pattern 3}
+
+Is this correct? Any corrections or additional context about how you'll use {tech}?
 ```
 
-The user may:
-- **Proceed** — produce all suggested docs
-- **Discuss** — ask questions, suggest improvements, request changes to scope or content for specific docs
-- **Skip** — remove specific docs from the list
+**User can respond:**
+- **Confirm** — "Yes" or "Correct" → Proceed to Step 5
+- **Correct** — "Actually it's for X, not Y" → Update classification and re-confirm
+- **Add context** — "I'll be using it with React for form workflows" → Include in README
 
-Wait for user confirmation before producing any docs.
-
----
-
-## Step 5: Produce Reference Docs
-
-For each relevant skill, create a file in its `references/` directory:
-
-- **Filename:** tech name with optional descriptive suffix
-  (e.g., `xstate.md`, `xstate-testing.md`, `remotion-video.md`)
-- **One file per skill** — all context for that skill+tech in one document
-- **Content:** practical and actionable — code examples, shell commands, conventions
-- **Style:** follow existing references (e.g., `video-testing-conventions.md`)
-- **No theory/overview** — just patterns the skill needs
+**Do NOT proceed to Step 5 until user confirms.** This ensures:
+- Domain classification is accurate for your use case
+- Pipeline impact is relevant to your project
+- Reference docs will be useful, not speculative
 
 ---
 
-## Step 6: Skill Recommendations
+## Step 5: Produce Tech README (After Confirmation)
 
-Produce a `{tech}-recommendations.md` in the techs directory: `techs/{tech}-recommendations.md`
+**Only after user confirms findings in Step 4**, create `techs/{tech}/README.md` with this structure:
 
-Contents:
-- Which base skills have reference docs and what they cover
-- Example prompts showing how to use base skills with this tech
-  (e.g., "create a checkout wizard using xstate", "run e2e on the auth flow")
-- Which skills were evaluated and skipped, with rationale
-- Compatible project types
+```markdown
+# {Tech Name}
+
+{One paragraph description — what it is, what problem it solves}
+
+## Domain Classification
+
+| Domain | Applies |
+|--------|---------|
+| State Management | {Yes/No} |
+| UI Components | {Yes/No} |
+| Data Fetching | {Yes/No} |
+| Form Handling | {Yes/No} |
+| Animation | {Yes/No} |
+| Routing | {Yes/No} |
+| Testing Tools | {Yes/No} |
+| Build Tools | {Yes/No} |
+| Styling | {Yes/No} |
+| Auth | {Yes/No} |
+
+## Pipeline Impact
+
+Based on domain classification, these skills may need tech-specific references:
+
+| Skill | Impact | Reason |
+|-------|--------|--------|
+| {skill} | {High/Medium/Low/None} | {Why this skill is affected} |
+| ... | ... | ... |
+
+## User's Use Case
+
+{If user provided context during confirmation, include it here}
+
+Example: "Using for multi-step form workflows with React"
+
+## Core Concepts
+
+{Brief summary of key concepts — just enough for skills to understand the tech}
+
+## Common Patterns
+
+{Patterns that affect how skills operate}
+
+## Anti-Patterns & Gotchas
+
+{Common mistakes that coding-guard should flag}
+
+## Testing Considerations
+
+{How this tech affects E2E testing}
+
+## Resources
+
+- Official docs: {url}
+- GitHub: {url}
+- npm: {url}
+```
 
 ---
 
-## After Research
+## After Research (Step 6)
 
-Report to the user:
-- Reference docs produced and their locations
-- Skills evaluated and skipped
-- Example prompts for using the tech with base skills
+After saving the README, report to the user:
+
+```
+✓ Research complete for {tech}
+
+Domain: {primary domain(s)}
+Pipeline impact: {list affected skills}
+Use case: {user's stated use case, if provided}
+
+Saved: techs/{tech}/README.md
+
+Skill-specific reference docs will be produced automatically when you invoke
+skills with {tech} context. For example:
+  - "create a checkout wizard with {tech}" → /create-task produces references/{tech}.md
+  - Running /coding-guard on {tech} code → produces references/{tech}.md if needed
+
+To manually produce all reference docs now, say "produce all {tech} references".
+```
+
+---
+
+## Manual Full Research (Optional)
+
+If user requests "produce all {tech} references", evaluate each skill using the Skill Concern Matrix in `skills/TECH_CONTEXT.md` and produce reference docs for skills where 2+ concerns are relevant.
+
+This bypasses lazy evaluation for users who want complete docs upfront.

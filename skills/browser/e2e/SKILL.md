@@ -3,6 +3,24 @@ name: e2e
 description: Orchestrate full e2e test run with visual verification. Cleans state, starts server, runs test phases, takes screenshots, and generates detailed report.
 ---
 
+## Tech Context Detection
+
+Before executing, check for technology-specific test orchestration patterns:
+
+1. **Scan test files and codebase** for technology usage
+2. **For each tech detected:**
+   - Check if `techs/{tech}/README.md` exists — if not, run `/research {tech}` first
+   - Check if `references/{tech}.md` exists in this skill's directory
+   - If not AND tech's domain affects this skill, produce reference doc:
+     - Read `skills/TECH_CONTEXT.md` for the Skill Concern Matrix
+     - Evaluate concerns: Server startup? Artifact paths? Timing/waits? Cleanup?
+     - If 2+ concerns relevant → produce `references/{tech}.md`
+3. **Read relevant reference docs** and apply tech-specific orchestration patterns
+
+**Domains that affect this skill:** Testing Tools, Animation (wait patterns), Build Tools (server startup), Routing
+
+---
+
 # E2E Test Orchestrator
 
 Full end-to-end test suite with visual verification via screenshots.

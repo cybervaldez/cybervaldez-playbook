@@ -3,6 +3,24 @@ name: ux-planner
 description: Conversational UX advisor for web UI planning. Use for UX questions, user flow design, interaction patterns, or to analyze UX review findings. Highly interactive - asks clarifying questions.
 ---
 
+## Tech Context Detection
+
+Before providing recommendations, check for technology-specific UX patterns:
+
+1. **Scan task/question** for technology mentions (component libraries, frameworks)
+2. **For each tech detected:**
+   - Check if `techs/{tech}/README.md` exists — if not, run `/research {tech}` first
+   - Check if `references/{tech}.md` exists in this skill's directory
+   - If not AND tech's domain affects this skill, produce reference doc:
+     - Read `skills/TECH_CONTEXT.md` for the Skill Concern Matrix
+     - Evaluate concerns: Component constraints? Async feedback? Accessibility implications? Form patterns?
+     - If 2+ concerns relevant → produce `references/{tech}.md`
+3. **Read relevant reference docs** and incorporate tech-specific UX considerations
+
+**Domains that affect this skill:** UI Components, Form Handling, Animation, Styling
+
+---
+
 # UX Planner
 
 A conversational UX advisor that helps plan web UI interactions, user flows, and interface patterns. This skill prioritizes understanding user goals through dialogue before recommending solutions.

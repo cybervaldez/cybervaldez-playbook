@@ -5,6 +5,24 @@ argument-hint: <task description>
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
+## Tech Context Detection
+
+Before executing, check for technology-specific patterns:
+
+1. **Scan task** for technology mentions (libraries, frameworks, tools)
+2. **For each tech detected:**
+   - Check if `techs/{tech}/README.md` exists — if not, run `/research {tech}` first
+   - Check if `references/{tech}.md` exists in this skill's directory
+   - If not AND tech's domain affects this skill, produce reference doc:
+     - Read `skills/TECH_CONTEXT.md` for the Skill Concern Matrix
+     - Evaluate concerns: File structure? Scaffolding patterns? Test organization? Debug containers?
+     - If 2+ concerns relevant → produce `references/{tech}.md`
+3. **Read relevant reference docs** and apply tech-specific patterns
+
+**Domains that affect this skill:** State Management, UI Components, Data Fetching, Routing, Build Tools, Auth
+
+---
+
 # Task Implementation Skill
 
 You are implementing tasks for the {{PROJECT_NAME}} WebUI. Each task includes planning, implementation, and **automated e2e test validation**.

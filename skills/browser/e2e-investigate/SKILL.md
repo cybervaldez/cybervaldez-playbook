@@ -3,6 +3,24 @@ name: e2e-investigate
 description: Investigate e2e test failures, diagnose root causes, and generate actionable tasks for /create-task.
 ---
 
+## Tech Context Detection
+
+Before investigating, check for technology-specific failure patterns:
+
+1. **Scan failing tests and error logs** for technology mentions
+2. **For each tech detected:**
+   - Check if `techs/{tech}/README.md` exists — if not, run `/research {tech}` first
+   - Check if `references/{tech}.md` exists in this skill's directory
+   - If not AND tech's domain affects this skill, produce reference doc:
+     - Read `skills/TECH_CONTEXT.md` for the Skill Concern Matrix
+     - Evaluate concerns: Failure patterns? Log formats? Reproduction? Debug tools?
+     - If 2+ concerns relevant → produce `references/{tech}.md`
+3. **Read relevant reference docs** and apply tech-specific investigation patterns
+
+**Domains that affect this skill:** Testing Tools, State Management (common failure modes), Data Fetching
+
+---
+
 # E2E Failure Investigation
 
 Analyze failing `/e2e` test results, investigate root causes, and produce actionable task descriptions ready for `/create-task`.

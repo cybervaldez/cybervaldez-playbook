@@ -3,6 +3,24 @@ name: ux-review
 description: Verify UI changes from user perspective via browser testing. Auto-suggested after /create-task completes.
 ---
 
+## Tech Context Detection
+
+Before reviewing, check for technology-specific visual patterns:
+
+1. **Scan changed UI files** for technology imports/usage (component libraries, animation)
+2. **For each tech detected:**
+   - Check if `techs/{tech}/README.md` exists — if not, run `/research {tech}` first
+   - Check if `references/{tech}.md` exists in this skill's directory
+   - If not AND tech's domain affects this skill, produce reference doc:
+     - Read `skills/TECH_CONTEXT.md` for the Skill Concern Matrix
+     - Evaluate concerns: Visual patterns? Animations? Design system? Responsive?
+     - If 2+ concerns relevant → produce `references/{tech}.md`
+3. **Read relevant reference docs** and apply tech-specific review criteria
+
+**Domains that affect this skill:** UI Components, Animation, Styling
+
+---
+
 # UX Review - User Perspective Verification
 
 > **Core Philosophy**

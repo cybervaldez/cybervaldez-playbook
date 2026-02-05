@@ -3,6 +3,24 @@ name: e2e-guard
 description: Analyze code changes, auto-generate e2e tests, and run them. Use after implementing changes to ensure test coverage.
 ---
 
+## Tech Context Detection
+
+Before generating tests, check for technology-specific coverage patterns:
+
+1. **Scan changed files** for technology imports/usage
+2. **For each tech detected:**
+   - Check if `techs/{tech}/README.md` exists — if not, run `/research {tech}` first
+   - Check if `references/{tech}.md` exists in this skill's directory
+   - If not AND tech's domain affects this skill, produce reference doc:
+     - Read `skills/TECH_CONTEXT.md` for the Skill Concern Matrix
+     - Evaluate concerns: Coverage patterns? Element selection? API verification? State assertions?
+     - If 2+ concerns relevant → produce `references/{tech}.md`
+3. **Read relevant reference docs** and apply tech-specific test generation patterns
+
+**Domains that affect this skill:** Data Fetching, Form Handling, Routing, Testing Tools
+
+---
+
 # E2E Test Guard - Post-Implementation Test Generator
 
 > **PROJECT TESTING PHILOSOPHY**
