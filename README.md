@@ -14,7 +14,7 @@ If you're a founder, tech lead, or recruiter considering working with me, this r
 - Real patterns from production projects
 
 ### 2. For Founders & Developers Ready to Kickstart An Idea
-- 8 skills guide the AI through planning, building, and testing*
+- 9 skills guide the AI through planning, building, and testing*
 - Not sure what to build yet? AI discovers trending ideas to spark your direction
 - No manual setup—everything configured automatically**
 
@@ -47,7 +47,7 @@ Kickstart a new project using KICKSTART.md
 The AI will:
 - Create a minimal welcome page scaffold
 - Search for trending ideas to inspire your first feature
-- Install all 8 skills to `.claude/skills/` (or `.gemini/skills/`)
+- Install all 9 skills to `.claude/skills/` (or `.gemini/skills/`)
 - Configure everything for your project
 - Archive KICKSTART.md when done
 
@@ -108,6 +108,7 @@ The problem was never capability - it was direction. Here's what I use now to
 stay pointed at true norths. **The magic isn't in any single skill. It's in
 the transitions between them.**
 
+- `/research` - make skills tech-aware
 - `/ux-planner` - think before building
 - `/create-task` - implement with tests baked in
 - `/coding-guard` - catch anti-patterns early
@@ -686,6 +687,7 @@ Test IDs are the **contract** between implementation and testing. They make the 
 
 | Skill | Purpose | Connects To |
 |-------|---------|-------------|
+| `/research` | Research technologies and classify their pipeline impact | Enables tech-aware skills |
 | `/ux-planner` | Conversational UX advisor - asks questions, explores options, plans interactions | Outputs to `/create-task` |
 | `/create-task` | Implementation with built-in e2e testing requirements | Triggers `/coding-guard`, `/cli-first`, `/ux-review`, `/e2e-guard` |
 | `/coding-guard` | Scans code changes for anti-patterns and convention violations | Reports issues to fix |
@@ -1029,7 +1031,7 @@ Using KICKSTART.md automatically:
 
 After kickstart completes, check:
 - `.claude/PROJECT_CONFIG.md` - Your configured values
-- `.claude/skills/` - All 8 skills installed and configured
+- `.claude/skills/` - All 9 skills installed and configured
 
 ### Manual Customization
 

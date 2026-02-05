@@ -2,7 +2,7 @@
 
 > For founders and developers who want to ship fast without accumulating debt.
 >
-> **What you'll get:** 8 skills guide the AI through planning, building, and testing. Not sure what to build? AI discovers trending ideas to spark your direction. No manual setup—everything configured automatically.
+> **What you'll get:** 9 skills guide the AI through planning, building, and testing. Not sure what to build? AI discovers trending ideas to spark your direction. No manual setup—everything configured automatically.
 
 ---
 
