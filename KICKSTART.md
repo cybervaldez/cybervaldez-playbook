@@ -63,7 +63,7 @@ node --version     # Should be 18+
 
 ## Step 3: Gather Project Info
 
-**The current directory is the project root.** All project files are created here. Playbook files will be moved into `playbook/` in Step 10.
+**The current directory is the project root.** All project files are created here. Playbook files will be moved into `playbook/` in Step 7.
 
 Auto-detect:
 - **PROJECT_NAME** — use the current directory name (`basename "$PWD"`)
@@ -83,11 +83,13 @@ Auto-detect or use defaults for:
 
 ---
 
-## Step 4: Create Welcome Page Structure
+## Step 4: Create Project Files
 
-**All files are created in the current directory (project root).**
+**All files are created in the current directory (project root).** This step creates the project structure, discovers trending ideas, and generates the welcome page content.
 
-### For python-cli-with-webui:
+### 4.1: Project Structure
+
+#### For python-cli-with-webui:
 
 ```
 PROJECT_NAME/                      # Current directory = project root
@@ -95,7 +97,7 @@ PROJECT_NAME/                      # Current directory = project root
 ├── app.py              # Flask app serving static files
 ├── start.sh            # Server start script
 ├── webui/
-│   └── index.html      # Welcome page (see Step 6)
+│   └── index.html      # Welcome page
 └── tests/
     └── test_welcome.sh # Bash E2E test with agent-browser
 ```
@@ -127,6 +129,9 @@ build/
 
 # Test artifacts
 tests/e2e-runs/
+
+# Archived playbook files (reference only)
+playbook/
 ```
 
 **app.py template:**
@@ -179,7 +184,7 @@ STATE=$(agent-browser eval "window.appState?.initialized" 2>/dev/null)
 echo "PASS: Welcome page loads successfully"
 ```
 
-### For nextjs-with-cli:
+#### For nextjs-with-cli:
 
 ```
 PROJECT_NAME/                      # Current directory = project root
@@ -190,7 +195,7 @@ PROJECT_NAME/                      # Current directory = project root
 ├── pages/
 │   └── index.tsx       # Entry point
 ├── src/
-│   └── App.tsx         # Welcome page component (see Step 6)
+│   └── App.tsx         # Welcome page component
 └── tests/
     └── test_welcome.sh # Bash E2E test with agent-browser
 ```
@@ -288,7 +293,7 @@ module.exports = nextConfig;
 }
 ```
 
-### For react-with-cli:
+#### For react-with-cli:
 
 ```
 PROJECT_NAME/                      # Current directory = project root
@@ -422,15 +427,15 @@ export default defineConfig({
 
 ---
 
-## Step 5: AI Discovers Trending Ideas
+### 4.2: Discover Trending Ideas
 
-**The AI discovers what's trending to spark your direction:**
+**The AI discovers what's trending to spark your direction.**
 
-Before generating the welcome page, the AI searches the web for:
+Before generating the welcome page, search the web for:
 
-### For python-cli-with-webui, nextjs-with-cli, and react-with-cli:
+#### For python-cli-with-webui, nextjs-with-cli, and react-with-cli:
 
-1. **Founder-focused ideas** — AI discovers tools that work with the playbook pipeline
+1. **Founder-focused ideas** — discover tools that work with the playbook pipeline
    - Example queries: "trending micro-SaaS ideas for solo founders 2026", "most profitable indie hacker tools 2026", "business tools founders are building 2026"
    - Focus on **buildable products** with a clear value proposition. For each idea, capture:
      - **Title**: Short name (3-5 words)
@@ -441,7 +446,7 @@ Before generating the welcome page, the AI searches the web for:
      - Has observable state (window.appState or DOM)
      - Behavior is deterministic (same input → same output)
 
-2. **Blue ocean opportunities** — AI discovers underserved niches that are still playbook-compatible
+2. **Blue ocean opportunities** — discover underserved niches that are still playbook-compatible
    - Example queries: "underserved micro-SaaS niches 2026", "blue ocean SaaS no competition 2026"
    - Focus on gaps in the market — regulated verticals, overlooked industries, compliance needs
    - Same playbook compatibility requirements as above
@@ -450,11 +455,11 @@ Before generating the welcome page, the AI searches the web for:
 
 ---
 
-## Step 6: Welcome Page Content
+### 4.3: Welcome Page Content
 
-Generate the welcome page with dynamic trending content from Step 5.
+Generate the welcome page with dynamic trending content from 4.2.
 
-### For python-cli-with-webui (webui/index.html):
+#### For python-cli-with-webui (webui/index.html):
 
 ```html
 <!DOCTYPE html>
@@ -669,7 +674,7 @@ guardrails cli-first e2e-truth</pre>
 </html>
 ```
 
-### For nextjs-with-cli and react-with-cli (src/App.tsx):
+#### For nextjs-with-cli and react-with-cli (src/App.tsx):
 
 **Note:** The `react-with-cli` and `nextjs-with-cli` project types share the same App.tsx welcome page component and HTML template below.
 
@@ -882,14 +887,14 @@ guardrails cli-first e2e-truth`}
 
 **Replace placeholders:**
 - `PROJECT_NAME` - User's project name
-- `TRENDING_TITLE_1/2/3` - Idea titles from web search (Step 4)
-- `TRENDING_PITCH_1/2/3` - Elevator pitches from web search (Step 4)
-- `BLUE_OCEAN_TITLE_1/2/3` - Blue ocean idea titles from web search (Step 4)
-- `BLUE_OCEAN_PITCH_1/2/3` - Blue ocean pitches from web search (Step 4)
+- `TRENDING_TITLE_1/2/3` - Idea titles from web search (4.2)
+- `TRENDING_PITCH_1/2/3` - Elevator pitches from web search (4.2)
+- `BLUE_OCEAN_TITLE_1/2/3` - Blue ocean idea titles from web search (4.2)
+- `BLUE_OCEAN_PITCH_1/2/3` - Blue ocean pitches from web search (4.2)
 
 ---
 
-## Step 7: Install Skills
+## Step 5: Install Skills
 
 Copy skills from `skills/` (still in project root at this point) to `.claude/skills/`:
 
@@ -899,7 +904,7 @@ mkdir -p .claude/skills
 
 ### For ALL project types:
 
-**Step 6.1: Copy core skills:**
+**Step 5.1: Copy core skills:**
 ```bash
 cp -r skills/core/* .claude/skills/
 ```
@@ -910,7 +915,7 @@ This includes:
 - coding-guard (code quality)
 - cli-first (observability)
 
-**Step 6.2: Copy shared references and research skill:**
+**Step 5.2: Copy shared references and research skill:**
 ```bash
 cp skills/TECH_CONTEXT.md .claude/skills/
 cp -r skills/research .claude/skills/
@@ -920,7 +925,7 @@ This includes:
 - TECH_CONTEXT.md (domain classification & skill concern matrix)
 - research (technology research skill)
 
-**Step 6.3: Create techs/ directory for project-specific research:**
+**Step 5.3: Create techs/ directory for project-specific research:**
 ```bash
 mkdir -p techs
 cat > techs/README.md << 'EOF'
@@ -941,7 +946,7 @@ EOF
 
 ### For python-cli-with-webui, nextjs-with-cli, and react-with-cli:
 
-**Step 6.4: Copy browser skills:**
+**Step 5.4: Copy browser skills:**
 ```bash
 cp -r skills/browser/* .claude/skills/
 ```
@@ -1011,52 +1016,28 @@ Core skills from cybervaldez-playbook are installed in `.claude/skills/`.
 
 ---
 
-## Step 8: Verify Welcome Page Works
+## Step 6: Initialize Git
 
-### For python-cli-with-webui, nextjs-with-cli, and react-with-cli:
+**Automatic:** Re-initialize git for clean project history. Skills use `git diff` to track changes.
 
-1. **Start the server:**
-   - For python: `./start.sh` or `python app.py`
-   - For nextjs-with-cli or react-with-cli: `npm run dev`
+```
+Initializing git repository for clean project history...
+```
 
-2. **Open the welcome page in browser** at `http://localhost:{PORT}`
-
-3. **Verify trending ideas are displayed** on the welcome page
-
-4. **For nextjs-with-cli or react-with-cli:** Run the basic test:
-   ```bash
-   bash tests/test_welcome.sh
-   ```
-
-5. **Verify project structure exists:**
-   ```bash
-   # Confirm all expected pieces are in place
-   ls .claude/skills/           # Skills installed
-   ls tests/                    # Tests directory exists
-   ```
-
----
-
-## Step 9: Initialize Git (ASK USER)
-
-Ask the user: **"The testing skills use git diff to track changes. Re-initialize the git repository for your project?"**
-
-If yes:
 ```bash
 rm -rf .git
 git init
 git add .
 git commit -m "Initial kickstart: PROJECT_NAME"
-(Note: Keep this initial commit simple - no co-author attribution needed)
 ```
 
 This replaces the playbook's git history with a clean project history.
 
 ---
 
-## Step 10: Organize Playbook Files (AUTOMATIC)
+## Step 7: Organize Playbook Files
 
-**After welcome page is confirmed working, move playbook files into `playbook/` to keep the project root clean. Skills have already been copied to `.claude/skills/` in Step 7.**
+**Move playbook files into `playbook/` to keep the project root clean. Skills have already been copied to `.claude/skills/` in Step 5.**
 
 ```bash
 mkdir -p playbook
@@ -1069,8 +1050,6 @@ mv KICKSTART.md playbook/KICKSTART.md
 # Move entire skills source into playbook (already copied to .claude/skills/)
 mv skills/ playbook/skills/
 ```
-
-**No user prompt needed — just do it.**
 
 **Result after kickstart:**
 ```
@@ -1088,7 +1067,7 @@ PROJECT_NAME/                    # Current directory = project root
 │       └── browser/
 └── .claude/
     ├── PROJECT_CONFIG.md
-    └── skills/                  # Active skills (copied in Step 6)
+    └── skills/                  # Active skills (copied in Step 5)
         ├── ux-planner/
         ├── create-task/
         └── ...
@@ -1100,19 +1079,9 @@ PROJECT_NAME/                    # Current directory = project root
 
 ---
 
-## Step 11: Verify & Launch
+## Step 8: Launch & Verify
 
-### 11.1: Verify final structure
-
-```bash
-# Confirm everything landed where it should
-ls .claude/skills/           # Active skills installed
-ls playbook/                 # Playbook files organized
-ls playbook/skills/          # Source skills preserved
-ls tests/                    # Tests directory exists
-```
-
-### 11.2: Start the server and verify
+Start the server, verify it responds, then inform the user.
 
 **For python-cli-with-webui:**
 ```bash
@@ -1135,9 +1104,7 @@ sleep 5
 curl -sf http://localhost:5173 | head -20
 ```
 
-If the server starts and responds, the kickstart is successful.
-
-### 11.3: Tell the user
+**Tell the user:**
 
 ```
 ★ PROJECT_NAME is kickstarted!
