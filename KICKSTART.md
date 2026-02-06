@@ -16,6 +16,7 @@
 - The current directory becomes the project — all project files are created here
 - Playbook files (KICKSTART.md, README.md, LICENSE, skills/) are moved into `playbook/` after kickstart
 - After kickstart, `playbook/` preserves everything for reference
+- **Have an existing project?** Use `UPGRADE.md` instead — it preserves your code and layers skills on top
 
 ---
 

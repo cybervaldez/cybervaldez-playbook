@@ -44,6 +44,8 @@ git clone https://github.com/cybervaldez/cybervaldez-playbook.git
 Kickstart a new project using KICKSTART.md
 ```
 
+> **Have an existing project?** Use `UPGRADE.md` instead — it layers playbook skills on top of your code without modifying it.
+
 The AI will:
 - Create a minimal welcome page scaffold
 - Search for trending ideas to inspire your first feature
