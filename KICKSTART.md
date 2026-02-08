@@ -25,7 +25,7 @@
 Before proceeding:
 
 1. **Scan for un-upgraded project folders.** Look for subdirectories in the playbook root that:
-   - Are NOT known playbook dirs: `skills/`, `.git/`, `.claude/`, `node_modules/`, `.github/`, `__pycache__/`
+   - Are NOT known playbook dirs: `skills/`, `.git/`, `.claude/`, `node_modules/`, `.github/`, `__pycache__/`, `test-kickstart/`
    - Contain project files (`package.json`, `app.py`, `requirements.txt`, `manage.py`, `Cargo.toml`, `go.mod`, `tsconfig.json`, `vite.config.*`, `next.config.*`)
    - Do NOT have `.claude/skills/research/SKILL.md` inside them
 
@@ -909,6 +909,7 @@ export default function App() {
     <div style={s.body}>
       <div style={s.container}>
         <style>{`
+          html, body { margin: 0; padding: 0; background: #0d1117; }
           @keyframes warm-pulse {
             0%, 100% { color: #ffd700; }
             25% { color: #f0883e; }
@@ -1129,6 +1130,14 @@ find {project-name}/.claude/skills -type f \( -name '*.md' -o -name '*.sh' \) -e
   {} +
 ```
 
+**Verify no placeholders were missed** (should return nothing — only runtime templates remain):
+
+```bash
+grep -r '{{' {project-name}/.claude/skills/ --include='*.md' | grep -v '{{BASE_URL}}\|{{AESTHETIC}}\|{{LAYOUT}}'
+```
+
+If any lines appear, a placeholder was not replaced. Check the `sed` values and re-run.
+
 **Note:** `{{BASE_URL}}` and ui-planner design tokens (e.g. `{{AESTHETIC}}`, `{{LAYOUT}}`) are runtime templates — do NOT replace them.
 
 **Note:** Run `/research {tech}` in your project to add technology-specific reference docs to skills.
@@ -1140,7 +1149,7 @@ find {project-name}/.claude/skills -type f \( -name '*.md' -o -name '*.sh' \) -e
 git remote get-url origin 2>/dev/null
 ```
 
-Strip any `.git` suffix from the result (e.g., `https://github.com/user/repo.git` → `https://github.com/user/repo`). Use this as the `PLAYBOOK_SOURCE` value below. If no remote exists, leave it empty.
+Strip any `.git` suffix from the result (e.g., `https://github.com/user/repo.git` → `https://github.com/user/repo`). If the URL starts with `git@` (SSH format), convert to HTTPS: `git@github.com:user/repo.git` → `https://github.com/user/repo`. If no remote exists, use an empty string. Use this as the `PLAYBOOK_SOURCE` value below.
 
 **Generate `{project-name}/.claude/PROJECT_CONFIG.md`:**
 
@@ -1176,24 +1185,9 @@ Core skills from cybervaldez-playbook are installed in `.claude/skills/`.
 
 ---
 
-## Step 6: Initialize Git
+## Step 6: Generate README
 
-**Initialize a fresh git repo inside the project subfolder.** The playbook's git history stays untouched.
-
-```bash
-cd {project-name}
-git init
-git add .
-git commit -m "Initial kickstart: {project-name}"
-```
-
-This gives the project its own git history, independent of the playbook repo.
-
----
-
-## Step 7: Generate README
-
-Generate a `README.md` inside `{project-name}/` with project-specific context.
+Generate a `README.md` inside `{project-name}/` with project-specific context. **All commands run from the playbook root using `{project-name}/` prefixes.**
 
 ```markdown
 # {PROJECT_NAME}
@@ -1246,48 +1240,50 @@ See `.claude/skills/SKILL_INDEX.md` for full details.
 _To be established as the project grows. Run `/coding-guard` to audit patterns._
 ```
 
-After generating, commit the README (you're already inside `{project-name}/` from Step 6):
+---
+
+## Step 7: Initialize Git
+
+**Initialize a fresh git repo inside the project subfolder.** The playbook's git history stays untouched. All commands run from the playbook root using `git -C`.
 
 ```bash
-git add README.md
-git commit -m "Add project README"
+git -C {project-name} init
+git -C {project-name} add .
+git -C {project-name} commit -m "Initial kickstart: {project-name}"
 ```
+
+This gives the project its own git history (including the README) in a single initial commit, independent of the playbook repo.
 
 ---
 
 ## Step 8: Launch & Verify
 
-Start the server, verify it responds, then inform the user.
-
-**Final step before reporting:** Add `{project-name}/` to the **playbook root** `.gitignore` (only after full success):
+**All commands run from the playbook root.** Add `{project-name}/` to the playbook's `.gitignore`, install dependencies, start the server, and verify.
 
 ```bash
-# From the playbook root
 echo '{project-name}/' >> .gitignore
 ```
 
 **For python-cli-with-webui:**
 ```bash
-cd {project-name}
-chmod +x start.sh && ./start.sh &
+chmod +x {project-name}/start.sh
+(cd {project-name} && ./start.sh) &
 sleep 2
 curl -sf http://localhost:8080 | head -20
 ```
 
 **For nextjs-with-cli:**
 ```bash
-cd {project-name}
-npm install
-npm run dev &
+npm install --prefix {project-name}
+npm run dev --prefix {project-name} &
 sleep 5
 curl -sf http://localhost:3000 | head -20
 ```
 
 **For react-with-cli:**
 ```bash
-cd {project-name}
-npm install
-npm run dev &
+npm install --prefix {project-name}
+npm run dev --prefix {project-name} &
 sleep 5
 curl -sf http://localhost:5173 | head -20
 ```
@@ -1350,9 +1346,9 @@ If kickstart fails partway through:
    ```
 
 2. **Resume from failure point:**
-   - If skills missing → Re-run step 5 (copy skills)
-   - If git not initialized → Re-run step 6
-   - If README missing → Re-run step 7
+   - If skills missing → Re-run Step 5 (copy skills)
+   - If README missing → Re-run Step 6
+   - If git not initialized → Re-run Step 7
 
 3. **Start fresh (nuclear option):**
    ```bash
