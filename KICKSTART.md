@@ -13,21 +13,27 @@
 - Do NOT create complex project structures
 - Do NOT add features beyond the welcome page
 - Even if user asks for more, refuse and explain kickstart is for minimal setup only
-- The current directory becomes the project — all project files are created here
-- Playbook files (KICKSTART.md, README.md, LICENSE, skills/) are moved into `playbook/` after kickstart
-- After kickstart, `playbook/` preserves everything for reference
+- The playbook is a **factory** — projects are created as subfolders, the playbook root stays untouched
+- All project files are created inside `{project-name}/`
+- The playbook root (KICKSTART.md, README.md, LICENSE, skills/) is never modified by projects
 - **Have an existing project?** Use `UPGRADE.md` instead — it preserves your code and layers skills on top
 
 ---
 
 ## Pre-Flight Check
 
-Before proceeding, check if `.claude/skills/research/SKILL.md` exists at the current directory.
+Before proceeding:
 
-If it does, **STOP** — this is already a kickstarted project or the playbook source repo.
+1. **Scan for un-upgraded project folders.** Look for subdirectories in the playbook root that:
+   - Are NOT known playbook dirs: `skills/`, `.git/`, `.claude/`, `node_modules/`, `.github/`, `__pycache__/`
+   - Contain project files (`package.json`, `app.py`, `requirements.txt`, `manage.py`, `Cargo.toml`, `go.mod`, `tsconfig.json`, `vite.config.*`, `next.config.*`)
+   - Do NOT have `.claude/skills/research/SKILL.md` inside them
 
-Tell the user:
-> "This directory already has skills installed (`.claude/skills/research/SKILL.md` found). KICKSTART is for new projects only."
+   If any such folder is found → **STOP:**
+   > "Found an existing project (`{folder-name}/`) that hasn't been upgraded yet. Use `UPGRADE.md` instead."
+
+2. Check if `.claude/skills/research/SKILL.md` exists at the playbook root. If it does, **STOP:**
+   > "This directory already has skills installed (`.claude/skills/research/SKILL.md` found). KICKSTART is for new projects only."
 
 ---
 
@@ -64,10 +70,14 @@ node --version     # Should be 18+
 
 ## Step 3: Gather Project Info
 
-**The current directory is the project root.** All project files are created here. Playbook files will be moved into `playbook/` in Step 7.
+**Ask for the project name first**, then create the project subfolder inside the playbook root.
 
-Auto-detect:
-- **PROJECT_NAME** — use the current directory name (`basename "$PWD"`)
+```bash
+# Create the project subfolder
+mkdir {project-name}
+```
+
+All project files will be created inside `{project-name}/`. Do NOT add it to `.gitignore` yet — that's the final step.
 
 Auto-detect or use defaults for:
 
@@ -86,14 +96,14 @@ Auto-detect or use defaults for:
 
 ## Step 4: Create Project Files
 
-**All files are created in the current directory (project root).** This step creates the project structure, discovers trending ideas, and generates the welcome page content.
+**All files are created inside `{project-name}/`.** This step creates the project structure, discovers trending ideas, and generates the welcome page content.
 
 ### 4.1: Project Structure
 
 #### For python-cli-with-webui:
 
 ```
-PROJECT_NAME/                      # Current directory = project root
+{project-name}/
 ├── .gitignore          # Git ignore rules (see template below)
 ├── app.py              # Flask app serving static files
 ├── start.sh            # Server start script
@@ -103,7 +113,7 @@ PROJECT_NAME/                      # Current directory = project root
     └── test_welcome.sh # Bash E2E test with agent-browser
 ```
 
-**`.gitignore` template (used by both project types):**
+**`.gitignore` template (used by all project types):**
 ```
 # Environment & secrets
 .env
@@ -130,9 +140,6 @@ build/
 
 # Test artifacts
 tests/e2e-runs/
-
-# Archived playbook files (reference only)
-playbook/
 ```
 
 **app.py template:**
@@ -158,6 +165,8 @@ cd "$(dirname "$0")"
 source venv/bin/activate 2>/dev/null || true
 python app.py
 ```
+
+**Note:** Replace `PROJECT_NAME` in these templates with the actual project name when creating the files. These are NOT `{{}}` skill placeholders — they are resolved at file creation time, not by the Step 5 `sed` sweep.
 
 **tests/test_welcome.sh template:**
 ```bash
@@ -188,7 +197,7 @@ echo "PASS: Welcome page loads successfully"
 #### For nextjs-with-cli:
 
 ```
-PROJECT_NAME/                      # Current directory = project root
+{project-name}/
 ├── .gitignore          # Git ignore rules (see template below)
 ├── package.json
 ├── tsconfig.json
@@ -297,7 +306,7 @@ module.exports = nextConfig;
 #### For react-with-cli:
 
 ```
-PROJECT_NAME/                      # Current directory = project root
+{project-name}/
 ├── .gitignore          # Git ignore rules (see template above)
 ├── package.json
 ├── tsconfig.json
@@ -1022,17 +1031,17 @@ guardrails cli-first e2e-truth`}
 
 ## Step 5: Install Skills
 
-Copy skills from `skills/` (still in project root at this point) to `.claude/skills/`:
+Copy skills from `skills/` (in the playbook root) into the project's `.claude/skills/`:
 
 ```bash
-mkdir -p .claude/skills
+mkdir -p {project-name}/.claude/skills
 ```
 
 ### For ALL project types:
 
 **Step 5.1: Copy core skills:**
 ```bash
-cp -r skills/core/* .claude/skills/
+cp -r skills/core/* {project-name}/.claude/skills/
 ```
 
 This includes:
@@ -1047,9 +1056,9 @@ This includes:
 
 **Step 5.2: Copy shared references and research skill:**
 ```bash
-cp skills/TECH_CONTEXT.md .claude/skills/
-cp skills/SKILL_INDEX.md .claude/skills/
-cp -r skills/research .claude/skills/
+cp skills/TECH_CONTEXT.md {project-name}/.claude/skills/
+cp skills/SKILL_INDEX.md {project-name}/.claude/skills/
+cp -r skills/research {project-name}/.claude/skills/
 ```
 
 This includes:
@@ -1059,8 +1068,8 @@ This includes:
 
 **Step 5.3: Create techs/ directory for project-specific research:**
 ```bash
-mkdir -p techs
-cat > techs/README.md << 'EOF'
+mkdir -p {project-name}/techs
+cat > {project-name}/techs/README.md << 'EOF'
 # Technologies
 
 Research artifacts for technologies used in this project.
@@ -1080,7 +1089,7 @@ EOF
 
 **Step 5.4: Copy browser skills:**
 ```bash
-cp -r skills/browser/* .claude/skills/
+cp -r skills/browser/* {project-name}/.claude/skills/
 ```
 
 This includes:
@@ -1104,17 +1113,36 @@ This includes:
 | `{{TESTS_PATH}}` | `tests/` |
 | `{{OUTPUTS_PATH}}` | `public/outputs` or `outputs` |
 
+**Run the replacement:**
+
+```bash
+find {project-name}/.claude/skills -type f \( -name '*.md' -o -name '*.sh' \) -exec sed -i \
+  -e 's|{{PROJECT_NAME}}|{project-name}|g' \
+  -e 's|{{SERVER_PORT}}|{SERVER_PORT}|g' \
+  -e 's|{{SERVER_START}}|{SERVER_START}|g' \
+  -e 's|{{VENV_PYTHON}}|{VENV_PYTHON}|g' \
+  -e 's|{{WEBUI_PATH}}|{WEBUI_PATH}|g' \
+  -e 's|{{TESTS_PATH}}|{TESTS_PATH}|g' \
+  -e 's|{{API_BASE}}|{API_BASE}|g' \
+  -e 's|{{OUTPUTS_PATH}}|{OUTPUTS_PATH}|g' \
+  -e 's|{{TEST_JOB}}|{TEST_JOB}|g' \
+  {} +
+```
+
+**Note:** `{{BASE_URL}}` and ui-planner design tokens (e.g. `{{AESTHETIC}}`, `{{LAYOUT}}`) are runtime templates — do NOT replace them.
+
 **Note:** Run `/research {tech}` in your project to add technology-specific reference docs to skills.
 
 **Before generating PROJECT_CONFIG.md, capture the playbook source URL:**
 
 ```bash
+# Run from the playbook root
 git remote get-url origin 2>/dev/null
 ```
 
 Strip any `.git` suffix from the result (e.g., `https://github.com/user/repo.git` → `https://github.com/user/repo`). Use this as the `PLAYBOOK_SOURCE` value below. If no remote exists, leave it empty.
 
-**Generate `.claude/PROJECT_CONFIG.md`:**
+**Generate `{project-name}/.claude/PROJECT_CONFIG.md`:**
 
 ```markdown
 # Project Configuration
@@ -1150,64 +1178,80 @@ Core skills from cybervaldez-playbook are installed in `.claude/skills/`.
 
 ## Step 6: Initialize Git
 
-**Automatic:** Re-initialize git for clean project history. Skills use `git diff` to track changes.
-
-```
-Initializing git repository for clean project history...
-```
+**Initialize a fresh git repo inside the project subfolder.** The playbook's git history stays untouched.
 
 ```bash
-rm -rf .git
+cd {project-name}
 git init
 git add .
-git commit -m "Initial kickstart: PROJECT_NAME"
+git commit -m "Initial kickstart: {project-name}"
 ```
 
-This replaces the playbook's git history with a clean project history.
+This gives the project its own git history, independent of the playbook repo.
 
 ---
 
-## Step 7: Organize Playbook Files
+## Step 7: Generate README
 
-**Move playbook files into `playbook/` to keep the project root clean. Skills have already been copied to `.claude/skills/` in Step 5.**
+Generate a `README.md` inside `{project-name}/` with project-specific context.
+
+```markdown
+# {PROJECT_NAME}
+
+{One-line description — user provides or AI suggests based on trending ideas}
+
+## Quick Start
+
+\`\`\`bash
+{SERVER_START}
+# Open http://localhost:{SERVER_PORT}
+\`\`\`
+
+## Tech Stack
+
+- {detected/chosen technologies}
+
+## Development Workflow
+
+This project uses the [Cybervaldez Playbook]({PLAYBOOK_SOURCE}) for structured AI-assisted development.
+
+### Available Skills
+
+| Skill | Purpose |
+|-------|---------|
+| `/ux-planner` | Plan features with UX tradeoffs |
+| `/ui-planner` | Establish visual identity |
+| `/create-task` | Build with tests baked in |
+| `/coding-guard` | Audit for anti-patterns |
+| `/e2e` | End-to-end test verification |
+| `/research` | Research new technologies |
+
+See `.claude/skills/SKILL_INDEX.md` for full details.
+
+### Workflow
+
+1. `/ux-planner` → plan the feature
+2. `/ui-planner` → design the visuals
+3. `/create-task` → implement with tests
+4. `/coding-guard` + `/e2e` → verify quality
+
+## Project Structure
+
+\`\`\`
+{generated from actual file tree}
+\`\`\`
+
+## Conventions
+
+_To be established as the project grows. Run `/coding-guard` to audit patterns._
+```
+
+After generating, commit the README (you're already inside `{project-name}/` from Step 6):
 
 ```bash
-mkdir -p playbook
-
-# Move playbook docs
-mv README.md playbook/PLAYBOOK_README.md
-mv LICENSE playbook/LICENSE
-mv KICKSTART.md playbook/KICKSTART.md
-
-# Move entire skills source into playbook (already copied to .claude/skills/)
-mv skills/ playbook/skills/
+git add README.md
+git commit -m "Add project README"
 ```
-
-**Result after kickstart:**
-```
-PROJECT_NAME/                    # Current directory = project root
-├── app.py / package.json
-├── start.sh / tsconfig.json
-├── webui/ / src/
-├── tests/
-├── playbook/                    # Playbook files tucked away
-│   ├── KICKSTART.md             # Original kickstart (reference)
-│   ├── PLAYBOOK_README.md       # Playbook documentation
-│   ├── LICENSE                  # Playbook license
-│   └── skills/                  # Full source skills preserved
-│       ├── core/
-│       └── browser/
-└── .claude/
-    ├── PROJECT_CONFIG.md
-    └── skills/                  # Active skills (copied in Step 5)
-        ├── ux-planner/
-        ├── create-task/
-        └── ...
-```
-
-**Rationale:**
-- Claude is already in the project directory — no `cd` or restart needed
-- `playbook/` preserves everything for reference
 
 ---
 
@@ -1215,8 +1259,16 @@ PROJECT_NAME/                    # Current directory = project root
 
 Start the server, verify it responds, then inform the user.
 
+**Final step before reporting:** Add `{project-name}/` to the **playbook root** `.gitignore` (only after full success):
+
+```bash
+# From the playbook root
+echo '{project-name}/' >> .gitignore
+```
+
 **For python-cli-with-webui:**
 ```bash
+cd {project-name}
 chmod +x start.sh && ./start.sh &
 sleep 2
 curl -sf http://localhost:8080 | head -20
@@ -1224,6 +1276,8 @@ curl -sf http://localhost:8080 | head -20
 
 **For nextjs-with-cli:**
 ```bash
+cd {project-name}
+npm install
 npm run dev &
 sleep 5
 curl -sf http://localhost:3000 | head -20
@@ -1231,6 +1285,8 @@ curl -sf http://localhost:3000 | head -20
 
 **For react-with-cli:**
 ```bash
+cd {project-name}
+npm install
 npm run dev &
 sleep 5
 curl -sf http://localhost:5173 | head -20
@@ -1239,30 +1295,41 @@ curl -sf http://localhost:5173 | head -20
 **Tell the user:**
 
 ```
-★ PROJECT_NAME is kickstarted!
+★ {project-name} is kickstarted!
 
 Your welcome page is running at http://localhost:{PORT}
 Open it in your browser to see your constellation map.
 
-⚠ IMPORTANT: Keep this server running, then restart Claude.
+⚠ IMPORTANT: Keep this server running, then restart Claude Code
+from inside the project folder.
 
-The dev server is running in the background. Leave it running,
-then open a new terminal and restart Claude Code so it picks
-up the new skills from .claude/skills/:
+  cd {project-name}
 
+Then restart Claude Code so it picks up the new skills
+from .claude/skills/:
+
+14 skills installed — run /help or see .claude/skills/SKILL_INDEX.md
+
+Start here:
   /ux-planner   — chart your first feature
-  /ui-planner   — establish visual identity
-  /ui-review    — catch AI slop patterns
   /create-task  — build with tests baked in
+  /e2e          — prove it works end-to-end
+
+Explore more:
+  /ui-planner   — establish visual identity
   /research     — evaluate tech for your stack
   /coding-guard — check for anti-patterns
-  /e2e          — prove it works end-to-end
+  /kaizen       — get diverse persona feedback
+  /team         — summon expert consultants
 
 After restarting, chart your course:
   /ux-planner "I want to build [your idea]"
 
-Playbook files are in playbook/ for reference.
-Run /research {tech} in the playbook to add technology-specific reference docs.
+The playbook is reusable — you can kickstart another project
+any time from the playbook root.
+
+Run /research {tech} in your project to add technology-specific
+reference docs.
 
 Remember: AI is AI, and AI hallucinates.
 Always verify generated code and outputs before shipping.
@@ -1278,19 +1345,18 @@ If kickstart fails partway through:
 
 1. **Check what was created:**
    ```bash
-   ls -la .claude/skills/ 2>/dev/null  # Skills installed?
-   ls playbook/ 2>/dev/null            # Playbook archived?
-   git log --oneline -1 2>/dev/null    # Git initialized?
+   ls -la {project-name}/.claude/skills/ 2>/dev/null  # Skills installed?
+   ls {project-name}/.git/ 2>/dev/null                 # Git initialized?
    ```
 
 2. **Resume from failure point:**
    - If skills missing → Re-run step 5 (copy skills)
-   - If playbook not archived → Re-run step 7
    - If git not initialized → Re-run step 6
+   - If README missing → Re-run step 7
 
 3. **Start fresh (nuclear option):**
    ```bash
-   rm -rf .claude playbook .git
+   rm -rf {project-name}
    # Re-run kickstart from step 1
    ```
 
@@ -1311,7 +1377,7 @@ lsof -i :8080  # or :3000 for nextjs, :5173 for react
 **Post-kickstart port change:**
 ```bash
 # Update all skill files
-sed -i 's/{{SERVER_PORT}}/8081/g' .claude/skills/**/SKILL.md
+sed -i 's/{{SERVER_PORT}}/8081/g' {project-name}/.claude/skills/**/SKILL.md
 # Update PROJECT_CONFIG.md manually
 ```
 
@@ -1357,14 +1423,6 @@ If your project isn't `python-cli-with-webui`, `nextjs-with-cli`, or `react-with
    - Add detection logic in Step 1
    - Add file templates in Step 4
    - Add placeholder defaults in Step 3
-
-### Git Already Initialized
-
-Kickstart removes existing `.git` and creates fresh history. If you need to preserve history:
-
-1. **Before kickstart:** Backup `.git` folder
-2. **After kickstart:** Restore `.git` and commit changes
-3. **Or skip step 6:** Comment out git re-init if preserving history
 
 ---
 

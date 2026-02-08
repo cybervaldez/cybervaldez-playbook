@@ -31,7 +31,7 @@ Research a technology and classify its domain and pipeline impact. This is **Pha
 4. Document pipeline impact (which skills are affected)
 5. Produce `techs/{tech}/README.md` (only after user confirms)
 
-**Note:** Skill-specific reference docs are NOT produced here. They are produced automatically when a skill is invoked with this tech (see `skills/TECH_CONTEXT.md`).
+**Note:** Skill-specific reference docs are NOT produced here. They are produced automatically when a skill is invoked with this tech (see `TECH_CONTEXT.md`).
 
 ## Usage
 
@@ -225,7 +225,7 @@ To manually produce all reference docs now, say "produce all {tech} references".
 
 ## Manual Full Research (Optional)
 
-If user requests "produce all {tech} references", evaluate each skill using the Skill Concern Matrix in `skills/TECH_CONTEXT.md` and produce reference docs for skills where 2+ concerns are relevant.
+If user requests "produce all {tech} references", evaluate each skill using the Skill Concern Matrix in `TECH_CONTEXT.md` and produce reference docs for skills where 2+ concerns are relevant.
 
 This bypasses lazy evaluation for users who want complete docs upfront.
 
@@ -244,4 +244,4 @@ This bypasses lazy evaluation for users who want complete docs upfront.
 - `/e2e-guard` - Uses tech context for test generation patterns
 - `/ux-planner` - Uses tech context for UX component constraints
 - `/ui-planner` - Uses tech context for visual component patterns
-- `skills/TECH_CONTEXT.md` - Domain classification and skill concern matrix
+- `TECH_CONTEXT.md` - Domain classification and skill concern matrix

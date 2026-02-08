@@ -232,7 +232,7 @@ Before executing:
 2. For each tech detected:
    a. Check `techs/{tech}/README.md` exists — if not, run `/research {tech}` first
    b. Check `references/{tech}.md` exists — if not AND domain affects this skill:
-      - Read `skills/TECH_CONTEXT.md` for concern matrix
+      - Read `TECH_CONTEXT.md` for concern matrix
       - Evaluate concerns (see matrix above)
       - If 2+ concerns relevant, produce reference doc
 3. Read relevant reference docs and apply patterns

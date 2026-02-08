@@ -23,7 +23,7 @@ Before performing review, check for technology-specific UI patterns:
    - Check if `techs/{tech}/README.md` exists — if not, run `/research {tech}` first
    - Check if `references/{tech}.md` exists in this skill's directory
    - If not AND tech's domain affects this skill, produce reference doc:
-     - Read `skills/TECH_CONTEXT.md` for the Skill Concern Matrix
+     - Read `TECH_CONTEXT.md` for the Skill Concern Matrix
      - Evaluate concerns: Typography validation? Color system check? Animation capabilities?
      - If 2+ concerns relevant → produce `references/{tech}.md`
 3. **Read relevant reference docs** and incorporate tech-specific validation rules
@@ -586,4 +586,4 @@ Optional improvements:
 - `/ui-planner` - Generates previews this skill reviews
 - `/ux-planner` - Interaction flows (review with `/ux-review`)
 - `/create-task` - Implementation after design passes
-- `skills/TECH_CONTEXT.md` - Tech-specific UI patterns
+- `TECH_CONTEXT.md` - Tech-specific UI patterns

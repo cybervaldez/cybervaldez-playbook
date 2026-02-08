@@ -6,44 +6,63 @@
 
 ---
 
+## Setup
+
+Copy your existing project into the playbook root as a subfolder:
+
+```bash
+# From the playbook root
+cp -r /path/to/my-app .
+```
+
+The upgrade process auto-detects your project folder — no special naming required.
+
+---
+
 ## CRITICAL CONSTRAINTS
 
 - Do NOT modify existing project files (code, configs, tests)
 - Do NOT restructure the project's directory layout
 - Do NOT replace existing tooling (test frameworks, CI/CD, linters)
 - The playbook layers ON TOP of existing work — it does not replace it
+- The playbook is a **factory** — the playbook root stays untouched, projects live as subfolders
 - Best suited for alpha/prototype-stage projects — be honest if the project is too mature
-- Playbook files (UPGRADE.md, README.md, LICENSE, skills/) are moved into `playbook/` after upgrade
 
 ---
 
-## Pre-Flight Check
+## Pre-Flight: Auto-Detect Project Folder
 
-Before proceeding, check if `.claude/skills/research/SKILL.md` exists at the current directory.
-
-If it does, **STOP** — this is already an upgraded/kickstarted project or the playbook source repo.
-
-Tell the user:
-> "This directory already has skills installed (`.claude/skills/research/SKILL.md` found). UPGRADE is for projects that haven't adopted the playbook yet."
+1. **Scan ALL subdirectories** in the playbook root — do not stop at the first match.
+2. **Skip known playbook dirs:** `skills/`, `.git/`, `.claude/`, `node_modules/`, `.github/`, `__pycache__/`, `test-kickstart/`
+3. **Find dirs** that contain project files (`package.json`, `app.py`, `requirements.txt`, `manage.py`, `Cargo.toml`, `go.mod`, `tsconfig.json`, `vite.config.*`, `next.config.*`) but do **NOT** have `.claude/skills/research/SKILL.md`
+4. **If one match** → that's the project. Use `{project-name}` as the detected folder name in all paths below. All steps run from the playbook root.
+5. **If multiple matches** → ask the user which one to upgrade.
+6. **If no matches** → **STOP:**
+   > "No un-upgraded project found. Copy your project into this directory first — see the Setup section above."
+7. **If matched folder already has `.claude/skills/research/SKILL.md`** → **STOP:**
+   > "This project already has skills installed (`.claude/skills/research/SKILL.md` found). UPGRADE is for projects that haven't adopted the playbook yet."
 
 ---
 
 ## Step 1: Project Scan
 
-**Automatic detection — no user input needed yet.**
+**Automatic detection — no user input needed yet.** Uses detected `{project-name}/` as prefix. Runs from playbook root.
 
 ### 1.1: Detect Project Type
 
 ```bash
 # Detect project type from files
-ls package.json next.config.* vite.config.* app.py requirements.txt manage.py Cargo.toml go.mod 2>/dev/null
+ls {project-name}/package.json {project-name}/next.config.* {project-name}/vite.config.* {project-name}/app.py {project-name}/requirements.txt {project-name}/manage.py {project-name}/Cargo.toml {project-name}/go.mod 2>/dev/null
+
+# Check for webui directory (required for python-cli-with-webui classification)
+ls -d {project-name}/webui/ 2>/dev/null
 
 # Scan structure
-find . -maxdepth 3 -type f | head -100
-ls -la
+find {project-name}/ -maxdepth 3 -type f -not -path '*/node_modules/*' -not -path '*/.git/*' -not -path '*/venv/*' -not -path '*/__pycache__/*' | head -100
+ls -la {project-name}/
 
 # Count complexity signals
-find . -type f -not -path '*/node_modules/*' -not -path '*/.git/*' -not -path '*/venv/*' | wc -l
+find {project-name}/ -type f -not -path '*/node_modules/*' -not -path '*/.git/*' -not -path '*/venv/*' -not -path '*/__pycache__/*' | wc -l
 ```
 
 Map to project type:
@@ -68,62 +87,87 @@ Also detect and record:
 | Signal | How to Detect |
 |--------|---------------|
 | Test framework | Look for jest.config.*, vitest.config.*, pytest.ini, conftest.py, etc. |
-| Existing `.claude/` folder | `ls -la .claude/ 2>/dev/null` |
-| CI/CD pipelines | `ls .github/workflows/ .gitlab-ci.yml Jenkinsfile 2>/dev/null` |
-| Package dependencies | Parse `package.json` dependencies or `requirements.txt` |
-| Git status | `git status --porcelain` |
-| Git history depth | `git rev-list --count HEAD 2>/dev/null` |
+| Existing `.claude/` folder | `ls -la {project-name}/.claude/ 2>/dev/null` |
+| CI/CD pipelines | `ls {project-name}/.github/workflows/ {project-name}/.gitlab-ci.yml {project-name}/Jenkinsfile 2>/dev/null` |
+| Package dependencies | `jq '.dependencies + .devDependencies | length' {project-name}/package.json 2>/dev/null` or `wc -l < {project-name}/requirements.txt 2>/dev/null` (approximate — may include comments/blanks) |
+| Git status | `git -C {project-name} status --porcelain` |
+| Git history depth | `git -C {project-name} rev-list --count HEAD 2>/dev/null` |
 | Total file count | Count from above |
-| Dependency count | `jq '.dependencies + .devDependencies | length' package.json 2>/dev/null` or `wc -l < requirements.txt 2>/dev/null` |
 
 ### 1.3: Gate Checks
 
-**Dirty git working tree:** If `git status --porcelain` returns output, **ABORT:**
+**Git check:** First check if the project has its own git repo: `[ -d {project-name}/.git ]`
 
-> "Your working tree has uncommitted changes. Please commit or stash your changes before running the upgrade. This ensures the backup in Step 4 captures a clean state."
+- **No `.git` directory** → **WARN** but don't block (do NOT run `git status` — it would inherit the parent repo):
+  > "No git repo found in `{project-name}/`. The upgrade will proceed, but some skills use `git diff` to track changes. You can run `git init` later."
 
-**No git repo:** If `git rev-list --count HEAD` fails, **WARN** but don't block:
+- **Has `.git` directory** → Check for dirty tree: `git -C {project-name} status --porcelain`
+  - If output → **ABORT:**
+    > "Your working tree has uncommitted changes. Please commit or stash your changes before running the upgrade."
+  - If clean → proceed
 
-> "This directory is not a git repository. The upgrade will proceed, but some skills use `git diff` to track changes. You can run `git init` later."
+**Existing `.claude/skills/`:** If `{project-name}/.claude/skills/` exists but `{project-name}/.claude/skills/research/SKILL.md` does not (pre-flight passed), **note for Step 3 assessment:**
 
-**Existing `.claude/skills/`:** If `.claude/skills/` exists but `.claude/skills/research/SKILL.md` does not (pre-flight passed), **WARN:**
+> "Existing `.claude/skills/` found — playbook skills will be added alongside existing files."
 
-> "Found existing `.claude/skills/` directory. The upgrade will add playbook skills to this directory, potentially overwriting files with the same names. Proceed?"
-
-User must confirm before continuing.
+(No separate confirmation — this is factored into the Step 3 assessment.)
 
 ---
 
 ## Step 2: Tech Stack Research
 
-For each major technology detected in Step 1 (framework, UI library, state management, etc.):
+### Where to find techs
 
-1. Run the **full `/research` workflow** for each detected tech
-2. Process techs **one at a time** so user can correct classifications individually
+Identify major technologies from these sources (in order):
+
+1. **Direct dependencies:** `requirements.txt` entries / `package.json` `dependencies` (not `devDependencies`)
+2. **README tech stack sections:** Any "Tech Stack" or "Built With" table in the project README
+3. **Key imports:** Scan Python/JS source for third-party imports not covered by 1-2
+
+**Skip:** Standard library modules (`os`, `json`, `http.server`, `path`), language runtimes (`Python`, `Node.js`), and shell tools (`Bash`, `curl`). These don't need tech research — they're assumed knowledge.
+
+**Note:** This step reads the `/research` workflow from the **playbook root** (`skills/research/SKILL.md`), not from the project's `.claude/skills/` (which isn't installed until Step 4). Use it as a **reference for research structure** (web search, domain classification, README format) — but **skip the per-tech user confirmation** (research SKILL.md Step 4). During upgrade, tech findings are reviewed collectively in the Step 3 assessment instead.
+
+### Verify and research
+
+1. **Verify each tech exists in actual source code** — not just README or docs:
+   - Python: `grep -r "import {tech}\|from {tech}" {project-name}/ --include="*.py"`
+   - JS/TS: `grep -r "require.*{tech}\|import.*{tech}" {project-name}/ --include="*.js" --include="*.ts" --include="*.tsx"`
+   - If a tech appears in README but not in code imports, **skip it** and log:
+     > "Skipped {tech}: mentioned in README but not found in imports."
+2. For each verified tech, follow the `/research` workflow (Steps 2-3 only: web search + domain classification). **Do not run research Step 4** (per-tech user confirmation) — tech findings are presented collectively in Step 3 assessment.
+3. Save findings to `{project-name}/techs/{tech}/README.md`
+
+**Implementation note:** Research each tech sequentially using a single agent rather than launching parallel agents per tech. This preserves full research depth while avoiding redundant context loading across agents (~60% token reduction). Each tech builds on the accumulated context from prior researches.
 
 ### Workflow per tech:
 
 1. Web search for current best practices
 2. Classify into domains per `skills/TECH_CONTEXT.md` Domain Classification Table
-3. Present findings to user for confirmation (same Present & Confirm pattern as `/research` Step 4)
-4. Save confirmed findings to `techs/{tech}/README.md`
+3. Save findings to `{project-name}/techs/{tech}/README.md` (reviewed as part of Step 3 assessment)
 
 ### Example flow:
 
 ```
 Detected technologies: Next.js, React, TypeScript, Tailwind
+Skipped Prisma: mentioned in README but not found in imports.
 
-Researching: Next.js
-{... full /research workflow ...}
-Is this correct? Any corrections?
+Researching: Next.js...
+Researching: React...
+Researching: TypeScript...
+Researching: Tailwind...
 
-> User confirms
+--- Tech Research Summary ---
 
-✓ Saved techs/nextjs/README.md
+Next.js (framework): App Router, RSC, API routes...
+React (ui-library): Component model, hooks, JSX...
+TypeScript (language): Strict mode, type inference...
+Tailwind (styling): Utility-first, JIT, responsive...
 
-Researching: React
-{... full /research workflow ...}
+(Findings saved to techs/. Summary included in Step 3 assessment.)
 ```
+
+**Phantom tech advisory:** If any techs were skipped (mentioned in docs but absent from imports), they'll appear in the Step 7 final report so you can update outdated references in your README.
 
 This pre-populates the research directory so skills are tech-aware from day one.
 
@@ -144,7 +188,18 @@ Gathered from Step 1 detection:
 | Existing test files | N | >0 = potential conflict |
 | CI/CD pipelines | Y/N | If yes = needs manual reconciliation |
 | Existing `.claude/` config | Y/N | If yes = will be merged carefully |
+| Existing `.claude/skills/` | Y/N | If yes = playbook skills added alongside existing files |
 | Git history depth | N commits | >500 = mature project warning |
+
+### Tech Stack Summary
+
+Include the tech research summary from Step 2 in the assessment:
+
+| Technology | Domain | Key Finding |
+|------------|--------|-------------|
+| {tech} | {domain} | {1-line summary} |
+
+If any techs were auto-skipped: "{tech}: mentioned in README but not in imports"
 
 ### Pros of Adopting
 
@@ -172,7 +227,7 @@ ASSESSMENT: GOOD FIT
 no existing test infrastructure to conflict with. The playbook
 will add structure without friction.
 
-Proceed with upgrade? (This will create a backup first)
+Proceed with upgrade?
 ```
 
 ```
@@ -182,7 +237,7 @@ ASSESSMENT: PROCEED WITH CAUTION
 you'll have two parallel quality systems. The playbook's E2E
 tests supplement but don't replace your existing tests.
 
-Proceed with upgrade? (This will create a backup first)
+Proceed with upgrade?
 ```
 
 ```
@@ -196,58 +251,30 @@ If you still want to proceed, here's what would need attention:
 - {specific concern 1}
 - {specific concern 2}
 
-Proceed anyway? (This will create a backup first)
+Proceed anyway?
 ```
 
 **User must explicitly confirm.** If "NOT RECOMMENDED", explain what would need to change and let user decide anyway.
 
 ---
 
-## Step 4: Backup
+## Step 4: Install Skills
 
-**Non-negotiable if proceeding. This happens before any modifications.**
+Same skill installation as KICKSTART, copying from `skills/` in the playbook root, with existing-project awareness.
 
-```bash
-# Create backup (exclude node_modules, venv, .git, build artifacts)
-mkdir -p .backup
-rsync -a --exclude='node_modules' --exclude='venv' --exclude='.git' \
-  --exclude='dist' --exclude='build' --exclude='__pycache__' \
-  --exclude='.backup' --exclude='skills' --exclude='KICKSTART.md' \
-  --exclude='UPGRADE.md' --exclude='README.md' --exclude='LICENSE' \
-  . .backup/
-
-# Add .backup to .gitignore (append, don't replace)
-grep -q '^\.backup/' .gitignore 2>/dev/null || echo '.backup/' >> .gitignore
-```
-
-Tell user:
-
-```
-Backup created at .backup/
-Your original project files are preserved. If anything goes wrong:
-  rm -rf .claude/skills playbook techs
-  cp -r .backup/* .
-```
-
----
-
-## Step 5: Install Skills
-
-Same skill installation as KICKSTART but with existing-project awareness.
-
-### 5.1: Handle Existing `.claude/` Folder
+### 4.1: Handle Existing `.claude/` Folder
 
 ```bash
 # Preserve existing .claude/ contents — only add skills/ subdirectory
-mkdir -p .claude/skills
+mkdir -p {project-name}/.claude/skills
 ```
 
-If `.claude/settings.json` or `.claude/settings.local.json` exist, leave them untouched.
+If `{project-name}/.claude/settings.json` or `{project-name}/.claude/settings.local.json` exist, leave them untouched.
 
-### 5.2: Copy Core Skills
+### 4.2: Copy Core Skills
 
 ```bash
-cp -r skills/core/* .claude/skills/
+cp -r skills/core/* {project-name}/.claude/skills/
 ```
 
 This includes:
@@ -260,22 +287,22 @@ This includes:
 - kaizen (diverse persona feedback)
 - team (expert persona collaboration)
 
-### 5.3: Copy Shared References + Research Skill
+### 4.3: Copy Shared References + Research Skill
 
 ```bash
-cp skills/TECH_CONTEXT.md .claude/skills/
-cp skills/SKILL_INDEX.md .claude/skills/
-cp -r skills/research .claude/skills/
+cp skills/TECH_CONTEXT.md {project-name}/.claude/skills/
+cp skills/SKILL_INDEX.md {project-name}/.claude/skills/
+cp -r skills/research {project-name}/.claude/skills/
 ```
 
-### 5.4: Create techs/ Directory
+### 4.4: Create techs/ Directory
 
 If not already created from Step 2:
 
 ```bash
-mkdir -p techs
+mkdir -p {project-name}/techs
 # Only create techs/README.md if it doesn't exist
-[ -f techs/README.md ] || cat > techs/README.md << 'EOF'
+[ -f {project-name}/techs/README.md ] || cat > {project-name}/techs/README.md << 'EOF'
 # Technologies
 
 Research artifacts for technologies used in this project.
@@ -291,12 +318,12 @@ Run `/research {tech}` to research a technology and create reference docs for sk
 EOF
 ```
 
-### 5.5: Copy Browser Skills
+### 4.5: Copy Browser Skills
 
 Only for supported project types (`python-cli-with-webui`, `nextjs-with-cli`, `react-with-cli`):
 
 ```bash
-cp -r skills/browser/* .claude/skills/
+cp -r skills/browser/* {project-name}/.claude/skills/
 ```
 
 This includes:
@@ -306,27 +333,46 @@ This includes:
 - e2e-investigate (root cause analysis for failures)
 - agent-browser (browser automation utility)
 
-### 5.6: Replace Placeholders
+### 4.6: Replace Placeholders
 
 Replace these placeholders in all skill `.md` files. Values are **detected from the existing project**, not defaults:
 
 | Placeholder | Detection Logic |
 |-------------|----------------|
-| `{{PROJECT_NAME}}` | `basename "$PWD"` |
+| `{{PROJECT_NAME}}` | `{project-name}` (already known from pre-flight detection) |
 | `{{SERVER_PORT}}` | Detect from existing config: `package.json` scripts (look for `--port` flags), `app.py` (look for `PORT` env or hardcoded port), or fall back to type default (`8080` for python, `3000` for nextjs, `5173` for react) |
 | `{{SERVER_START}}` | Detect from `package.json` scripts (`dev` or `start`) or existing `start.sh`. Fall back to type default (`./start.sh` for python, `npm run dev` for nextjs/react) |
 | `{{VENV_PYTHON}}` | `./venv/bin/python` if `venv/` exists, else `python3` |
-| `{{WEBUI_PATH}}` | First of `src/`, `webui/`, `app/`, `public/` that exists |
+| `{{WEBUI_PATH}}` | First directory (checking `webui/`, `app/`, `src/`, `public/` in order) that contains a `js/` or `templates/` subdirectory. If the match is nested (e.g., `webui/prompty/`), use the nested path. |
 | `{{TESTS_PATH}}` | First of `tests/`, `test/`, `__tests__/`, `spec/` that exists, or create `tests/` |
-| `{{API_BASE}}` | Detect from existing routes (look for `/api` patterns in code) or default `/api` |
+| `{{API_BASE}}` | Detect the common API route prefix from actual route definitions: `grep -rh "path.*'/api\|route.*'/api\|@app.*('/api" {project-name}/ --include="*.py" --include="*.js" --include="*.ts"` and extract the longest shared prefix. Default `/api` if no routes found. |
 | `{{OUTPUTS_PATH}}` | `public/outputs` if `public/` exists, else `outputs` |
 | `{{TEST_JOB}}` | `test-fixtures` |
 
-### 5.7: Generate `.claude/PROJECT_CONFIG.md`
+**Run the replacement:**
+
+```bash
+find {project-name}/.claude/skills -type f \( -name '*.md' -o -name '*.sh' \) -exec sed -i \
+  -e 's|{{PROJECT_NAME}}|{project-name}|g' \
+  -e 's|{{SERVER_PORT}}|{SERVER_PORT}|g' \
+  -e 's|{{SERVER_START}}|{SERVER_START}|g' \
+  -e 's|{{VENV_PYTHON}}|{VENV_PYTHON}|g' \
+  -e 's|{{WEBUI_PATH}}|{WEBUI_PATH}|g' \
+  -e 's|{{TESTS_PATH}}|{TESTS_PATH}|g' \
+  -e 's|{{API_BASE}}|{API_BASE}|g' \
+  -e 's|{{OUTPUTS_PATH}}|{OUTPUTS_PATH}|g' \
+  -e 's|{{TEST_JOB}}|{TEST_JOB}|g' \
+  {} +
+```
+
+**Note:** `{{BASE_URL}}` and ui-planner design tokens (e.g. `{{AESTHETIC}}`, `{{LAYOUT}}`) are runtime templates — do NOT replace them.
+
+### 4.7: Generate `.claude/PROJECT_CONFIG.md`
 
 **Before generating, capture the playbook source URL:**
 
 ```bash
+# Run from the playbook root
 git remote get-url origin 2>/dev/null
 ```
 
@@ -351,7 +397,6 @@ Generated by Cybervaldez Playbook Upgrade
 | Outputs Path | OUTPUTS_PATH |
 | Playbook Source | PLAYBOOK_SOURCE |
 | Upgraded From | {detected project description, e.g. "Next.js 14 app with 45 files, jest tests, GitHub Actions CI"} |
-| Backup Location | .backup/ |
 
 ## Skills Installed
 
@@ -359,117 +404,141 @@ Core skills from cybervaldez-playbook are installed in `.claude/skills/`.
 
 ## Next Steps
 
-1. Run `/ux-planner` to plan your next feature
-2. Run `/create-task` to implement with tests
-3. Run `/e2e` to verify everything works
+Pick your starting point:
+
+| If you want to... | Run |
+|-------------------|-----|
+| Plan a new feature | `/ux-planner "I want to add [feature]"` |
+| Redesign current UI | `/ui-planner "review current design of PROJECT_NAME"` |
+| Get expert feedback | `/team "review PROJECT_NAME and suggest improvements"` |
+| Get diverse user perspectives | `/kaizen "evaluate PROJECT_NAME from a user perspective"` |
+| Implement something specific | `/create-task` |
+| Research a technology | `/research {tech}` |
 ```
+
+---
+
+## Step 5: README Consolidation
+
+**Merge playbook development workflow into the project's existing README.**
+
+1. **Read** `{project-name}/README.md` (if it exists)
+2. **Identify** what's already documented (setup, architecture, conventions, etc.)
+3. **Add missing sections** from the template below — do NOT duplicate what already exists
+4. **Present** the merged README to the user for approval before saving
+5. **Save** only after user confirms
+
+### Sections to add (if missing):
+
+```markdown
+## Development Workflow
+
+This project uses the [Cybervaldez Playbook](PLAYBOOK_SOURCE) for structured AI-assisted development.
+
+### Available Skills
+
+| Skill | Purpose |
+|-------|---------|
+| `/ux-planner` | Plan features with UX tradeoffs |
+| `/ui-planner` | Establish visual identity |
+| `/create-task` | Build with tests baked in |
+| `/coding-guard` | Audit for anti-patterns |
+| `/e2e` | End-to-end test verification |
+| `/research` | Research new technologies |
+
+See `.claude/skills/SKILL_INDEX.md` for full details.
+
+### Workflow
+
+1. `/ux-planner` → plan the feature
+2. `/ui-planner` → design the visuals
+3. `/create-task` → implement with tests
+4. `/coding-guard` + `/e2e` → verify quality
+```
+
+**Guidelines for merging:**
+- Preserve the project's existing voice and content
+- Add the Development Workflow section in a natural location (typically near the end, before Contributing/License)
+- If the project already has a "Development" or "Contributing" section, integrate the skills table into it rather than creating a duplicate
+- Replace `PLAYBOOK_SOURCE` with the detected playbook URL
 
 ---
 
 ## Step 6: Ensure Supporting Structure
 
 ```bash
-# Ensure tests directory exists (use detected path from 5.6)
-mkdir -p {{TESTS_PATH}}
+# Use the TESTS_PATH value resolved in Step 4.6 (e.g., tests/)
+mkdir -p {project-name}/{TESTS_PATH}
 
-# Ensure .gitignore has playbook entries (append, don't replace)
-grep -q '^playbook/' .gitignore 2>/dev/null || echo 'playbook/' >> .gitignore
-grep -q '^\.backup/' .gitignore 2>/dev/null || echo '.backup/' >> .gitignore
-grep -q '^tests/e2e-runs/' .gitignore 2>/dev/null || echo 'tests/e2e-runs/' >> .gitignore
+# If no .gitignore exists, seed one with project-type defaults
+if [ ! -f {project-name}/.gitignore ]; then
+  case {PROJECT_TYPE} in
+    python-cli-with-webui)
+      cat > {project-name}/.gitignore << 'EOF'
+venv/
+__pycache__/
+*.pyc
+.env
+EOF
+      ;;
+    nextjs-with-cli)
+      cat > {project-name}/.gitignore << 'EOF'
+node_modules/
+.next/
+.env.local
+EOF
+      ;;
+    react-with-cli)
+      cat > {project-name}/.gitignore << 'EOF'
+node_modules/
+dist/
+.env.local
+EOF
+      ;;
+  esac
+fi
+
+# Ensure e2e-runs is ignored (append, don't replace)
+grep -q '^tests/e2e-runs/' {project-name}/.gitignore 2>/dev/null || echo 'tests/e2e-runs/' >> {project-name}/.gitignore
 ```
 
 ---
 
-## Step 7: Organize Playbook Files
+## Step 7: Report & Next Steps
 
-Move playbook source files to `playbook/` to keep the project root clean. Skills have already been copied to `.claude/skills/` in Step 5.
-
-### 7.1: Handle README.md Conflict
-
-The playbook's `README.md` (in the repo root alongside KICKSTART.md/UPGRADE.md) must not overwrite the project's own `README.md`.
-
-**Detection:** Check if a non-playbook `README.md` exists at root. The playbook's README.md contains "Cybervaldez Playbook" — if the root README.md does NOT contain this string, it's the project's own README and must be preserved.
+**Final step:** Add `{project-name}/` to the **playbook root** `.gitignore` (only after full success):
 
 ```bash
-# Check if project has its own README.md (not the playbook's)
-if [ -f README.md ] && ! grep -q "Cybervaldez Playbook" README.md 2>/dev/null; then
-    # Project has its own README — it stays untouched
-    # The playbook README was already in root from copy-paste; skip moving it
-    echo "Project README.md preserved at root."
-fi
+echo '{project-name}/' >> .gitignore
 ```
 
-### 7.2: Move Playbook Files
-
-```bash
-mkdir -p playbook
-
-# Move playbook README (rename to avoid conflict)
-# Only move if it's the playbook's README (contains "Cybervaldez Playbook")
-if [ -f README.md ] && grep -q "Cybervaldez Playbook" README.md 2>/dev/null; then
-    mv README.md playbook/PLAYBOOK_README.md
-fi
-
-# Move other playbook files
-[ -f LICENSE ] && mv LICENSE playbook/LICENSE
-[ -f KICKSTART.md ] && mv KICKSTART.md playbook/KICKSTART.md
-[ -f UPGRADE.md ] && mv UPGRADE.md playbook/UPGRADE.md
-
-# Move entire skills source into playbook (already copied to .claude/skills/)
-[ -d skills/ ] && mv skills/ playbook/skills/
-```
-
-**Result after upgrade:**
-```
-PROJECT_NAME/                    # Existing project root (UNTOUCHED)
-├── {existing project files}     # All original files preserved
-├── techs/                       # Tech research (new)
-│   └── {tech}/README.md
-├── playbook/                    # Playbook files tucked away (new)
-│   ├── UPGRADE.md               # This file (reference)
-│   ├── KICKSTART.md             # Kickstart (reference)
-│   ├── PLAYBOOK_README.md       # Playbook documentation
-│   ├── LICENSE                  # Playbook license
-│   └── skills/                  # Full source skills preserved
-│       ├── core/
-│       ├── browser/
-│       └── research/
-├── .backup/                     # Pre-upgrade backup (new)
-└── .claude/
-    ├── PROJECT_CONFIG.md        # Project config (new)
-    ├── {existing .claude files}  # Preserved
-    └── skills/                  # Active skills (new)
-        ├── SKILL_INDEX.md
-        ├── TECH_CONTEXT.md
-        ├── ux-planner/
-        ├── create-task/
-        ├── research/
-        └── ...
-```
-
----
-
-## Step 8: Report & Next Steps
+**Tell the user:**
 
 ```
 UPGRADE COMPLETE: {PROJECT_NAME}
 
-Skills installed: .claude/skills/ (14 skills)
-Tech research: techs/ ({N} technologies documented)
-Backup: .backup/ (original project preserved)
-Playbook reference: playbook/
+Skills installed: {project-name}/.claude/skills/ (14 skills)
+Tech research: {project-name}/techs/ ({N} technologies documented)
+Skipped (mentioned in docs but not in code): {comma-separated list, or "none"}
+  → The upgrade does not modify existing project files.
+    Update these references manually after the upgrade if they're outdated.
 
-IMPORTANT: Restart Claude Code to pick up new skills.
+IMPORTANT: Open a new Claude Code session from inside the project folder.
 
-Open a new terminal and restart Claude Code, then:
+What do you want to do first?
 
-  /ux-planner "I want to add [feature] to {PROJECT_NAME}"
-  /research {tech}          — research additional technologies
-  /coding-guard             — audit existing code patterns
-  /e2e                      — set up E2E testing
+  /ux-planner "I want to add [feature]"           — plan a new feature
+  /ui-planner "review current design of {PROJECT_NAME}"  — redesign or establish visual identity
+  /team "review {PROJECT_NAME} and suggest improvements"  — get expert feedback
+  /kaizen "evaluate {PROJECT_NAME} from a user perspective"  — diverse persona feedback
+  /create-task                                     — implement something specific
+  /research {tech}                                 — research a technology
 
 Your existing code is untouched. The playbook adds structure
 around your development process — it doesn't replace your work.
+
+The playbook is reusable — you can upgrade another project
+any time from the playbook root.
 
 Remember: AI is AI, and AI hallucinates.
 Always verify generated code and outputs before shipping.
@@ -481,16 +550,16 @@ Always verify generated code and outputs before shipping.
 
 ### Dirty Git Working Tree
 
-Detected at Step 1. Upgrade aborts with:
+Detected at Step 1. Only checked if `{project-name}/.git` exists (prevents false positives from parent repos). Upgrade aborts with:
 > "Your working tree has uncommitted changes. Please commit or stash first."
 
 ### Existing `.claude/skills/`
 
-Detected at Step 1. Warns user that skills will be overwritten. User must confirm.
+Detected at Step 1. Logged as a note and factored into the Step 3 compatibility assessment. No separate confirmation — playbook skills are added alongside existing files.
 
 ### No Git Repo
 
-Detected at Step 1. Warns but doesn't block. Skills use `git diff` but project can `git init` later.
+Detected at Step 1 by checking for `{project-name}/.git`. Warns but doesn't block — `git status` is NOT run (it would inherit the parent repo's state). Skills use `git diff` but project can `git init` later.
 
 ### Unsupported Project Type
 
@@ -498,17 +567,28 @@ Detected at Step 1. Warns but doesn't block. Skills use `git diff` but project c
 
 ### Project README.md Conflict
 
-Handled at Step 7.1. If project has its own README.md at root, it stays untouched. The playbook's README.md is moved to `playbook/PLAYBOOK_README.md`.
+Handled at Step 5 (README Consolidation). The AI merges playbook content into the existing README, presenting the result for user approval before saving. The project's original content is always preserved.
 
 ### Partial Upgrade (Failed Midway)
 
-No special handling needed. User restores from `.backup/` (backup is created before any modifications):
+1. **Check what was installed:**
+   ```bash
+   ls {project-name}/.claude/skills/ 2>/dev/null  # Skills copied?
+   ls {project-name}/techs/ 2>/dev/null             # Tech research done?
+   cat {project-name}/.claude/PROJECT_CONFIG.md 2>/dev/null  # Config generated?
+   ```
 
-```bash
-# Restore from backup
-rm -rf .claude/skills playbook techs
-cp -r .backup/* .
-```
+2. **Resume from failure point:**
+   - If skills missing → Re-run from Step 4
+   - If placeholders unreplaced → Re-run the `sed` command from Step 4.6
+   - If README not merged → Re-run Step 5
+   - If PROJECT_CONFIG missing → Re-run Step 4.7
+
+3. **Start fresh** (only if project source exists elsewhere):
+   ```bash
+   rm -rf {project-name}/.claude/skills {project-name}/techs
+   # Re-run upgrade from Step 4
+   ```
 
 ### Port Detection Failure
 

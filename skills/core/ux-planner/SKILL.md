@@ -23,7 +23,7 @@ Before providing recommendations, check for technology-specific UX patterns:
    - Check if `techs/{tech}/README.md` exists — if not, run `/research {tech}` first
    - Check if `references/{tech}.md` exists in this skill's directory
    - If not AND tech's domain affects this skill, produce reference doc:
-     - Read `skills/TECH_CONTEXT.md` for the Skill Concern Matrix
+     - Read `TECH_CONTEXT.md` for the Skill Concern Matrix
      - Evaluate concerns: Component constraints? Async feedback? Accessibility implications? Form patterns?
      - If 2+ concerns relevant → produce `references/{tech}.md`
 3. **Read relevant reference docs** and incorporate tech-specific UX considerations

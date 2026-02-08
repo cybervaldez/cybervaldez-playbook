@@ -23,7 +23,7 @@ Before executing, check for technology-specific test orchestration patterns:
    - Check if `techs/{tech}/README.md` exists — if not, run `/research {tech}` first
    - Check if `references/{tech}.md` exists in this skill's directory
    - If not AND tech's domain affects this skill, produce reference doc:
-     - Read `skills/TECH_CONTEXT.md` for the Skill Concern Matrix
+     - Read `TECH_CONTEXT.md` for the Skill Concern Matrix
      - Evaluate concerns: Server startup? Artifact paths? Timing/waits? Cleanup?
      - If 2+ concerns relevant → produce `references/{tech}.md`
 3. **Read relevant reference docs** and apply tech-specific orchestration patterns

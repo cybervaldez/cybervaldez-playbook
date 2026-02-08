@@ -23,7 +23,7 @@ Before providing recommendations, check for technology-specific UI patterns:
    - Check if `techs/{tech}/README.md` exists — if not, run `/research {tech}` first
    - Check if `references/{tech}.md` exists in this skill's directory
    - If not AND tech's domain affects this skill, produce reference doc:
-     - Read `skills/TECH_CONTEXT.md` for the Skill Concern Matrix
+     - Read `TECH_CONTEXT.md` for the Skill Concern Matrix
      - Evaluate concerns: Design tokens? Animation constraints? Component theming? Layout systems?
      - If 2+ concerns relevant → produce `references/{tech}.md`
 3. **Read relevant reference docs** and incorporate tech-specific visual patterns

@@ -549,4 +549,4 @@ If design tokens were intentionally chosen:
 - Parent: `SKILL.md` - Main ui-review skill documentation
 - `/ui-planner` - Generates the previews this skill reviews
 - `ui-patterns.md` (in ui-planner) - Design token reference
-- `skills/TECH_CONTEXT.md` - Tech-specific patterns
+- `TECH_CONTEXT.md` - Tech-specific patterns

@@ -37,3 +37,7 @@ tests/e2e-runs/
 
 # Local configs
 .claude/settings.local.json
+
+# Project subfolders (factory output, not source)
+# Each kickstart/upgrade dynamically adds {project-name}/ here as the final step
+cybervaldez-prompt-generator/

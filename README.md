@@ -34,29 +34,36 @@ These patterns represent **my true north** - lessons learned from building proje
 
 **Setup:**
 
-1. Clone this repo into your project directory:
+1. Clone this repo — it's a **factory** that produces projects as subfolders:
 ```bash
 git clone https://github.com/cybervaldez/cybervaldez-playbook.git
+cd cybervaldez-playbook
 ```
 
-2. Tell your AI assistant:
+2. **New project?** Tell your AI assistant:
 ```
 Kickstart a new project using KICKSTART.md
 ```
+The AI creates a project subfolder (e.g., `my-app/`) with scaffold, skills, and its own git history. The playbook root stays untouched and reusable.
 
-> **Have an existing project?** Use `UPGRADE.md` instead — it layers playbook skills on top of your code without modifying it.
-
-The AI will:
-- Create a minimal welcome page scaffold
-- Search for trending ideas to inspire your first feature
-- Install all 14 skills to `.claude/skills/` (or `.gemini/skills/`)
-- Configure everything for your project
-- Archive KICKSTART.md when done
-
-3. Start building:
+3. **Existing project?** Copy it in and upgrade:
+```bash
+cp -r /path/to/my-app .
 ```
+Then tell your AI assistant:
+```
+Upgrade my project using UPGRADE.md
+```
+The AI auto-detects the project folder, layers skills on top without modifying your code.
+
+4. Start building (from inside the project folder):
+```bash
+cd my-app
+# Restart Claude Code, then:
 /ux-planner "I want to build [your idea]"
 ```
+
+The playbook is reusable — kickstart or upgrade multiple projects from the same clone.
 
 ---
 
@@ -1471,34 +1478,29 @@ The UX patterns reference includes timeless principles that apply to any web pro
 │   │       └── SKILL.md
 ```
 
-**After kickstart, your project has:**
+**After kickstart, your project is a subfolder:**
 ```
-your-project/
-├── techs/                              # Technology research output (project-specific)
-│   └── README.md                       # List of researched technologies
-├── playbook/
-│   ├── PLAYBOOK_README.md              # Reference documentation
-│   ├── LICENSE                         # Playbook license
-│   └── skills/                         # Full source skills preserved
-│       ├── core/
-│       └── browser/
-├── .claude/  (or .gemini/)
-│   ├── PROJECT_CONFIG.md               # Your configured values
-│   ├── PROJECT_CONVENTIONS.md          # Project-type conventions
-│   └── skills/                         # Installed skills
-│       ├── TECH_CONTEXT.md             # Domain classification & concern matrix
-│       ├── research/                   # Technology research skill
-│       ├── ux-planner/                 # (from core/)
-│       ├── ui-planner/                 # (from core/)
-│       ├── ui-review/                  # (from core/)
-│       ├── create-task/                # (from core/)
-│       ├── coding-guard/               # (from core/)
-│       ├── cli-first/                  # (from core/)
-│       ├── ux-review/                  # (from browser/ - if applicable)
-│       ├── e2e-guard/                  # (from browser/ - if applicable)
-│       ├── e2e/                        # (from browser/ - if applicable)
-│       ├── e2e-investigate/            # (from browser/ - if applicable)
-│       └── agent-browser/              # (from browser/ - if applicable)
+cybervaldez-playbook/                   # Factory (untouched, reusable)
+├── KICKSTART.md
+├── UPGRADE.md
+├── README.md
+├── skills/                             # Source skills
+└── your-project/                       # Created by kickstart (gitignored)
+    ├── README.md                       # Project-specific README
+    ├── techs/                          # Technology research output
+    │   └── README.md
+    ├── .claude/
+    │   ├── PROJECT_CONFIG.md           # Your configured values
+    │   └── skills/                     # Installed skills (copied from ../skills/)
+    │       ├── TECH_CONTEXT.md
+    │       ├── SKILL_INDEX.md
+    │       ├── research/
+    │       ├── ux-planner/
+    │       ├── ui-planner/
+    │       ├── create-task/
+    │       ├── coding-guard/
+    │       └── ...
+    └── .git/                           # Own git history
 ```
 
 ---
