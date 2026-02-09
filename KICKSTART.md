@@ -2,7 +2,7 @@
 
 > For founders and developers who want to ship fast without accumulating debt.
 >
-> **What you'll get:** 14 skills guide the AI through planning, building, testing, and consultation. Not sure what to build? AI discovers trending ideas to spark your direction. No manual setup—everything configured automatically.
+> **What you'll get:** 14 skills guide the AI through planning, building, testing, and consultation. Not sure what to build? Opt in to AI-discovered trending ideas to spark your direction. Already have an idea? Skip straight to building. No manual setup—everything configured automatically.
 
 ---
 
@@ -79,6 +79,12 @@ mkdir {project-name}
 
 All project files will be created inside `{project-name}/`. Do NOT add it to `.gitignore` yet — that's the final step.
 
+**Ask the user:**
+
+> Do you already have a project idea, or would you like to explore trending ideas?
+> - **I have an idea** → set `IDEA_MODE = has-idea` (skips idea discovery in 4.2, uses simple welcome page)
+> - **Explore ideas** → set `IDEA_MODE = explore` (runs idea discovery in 4.2, uses full welcome page with trending themes)
+
 Auto-detect or use defaults for:
 
 | Placeholder | Detection Logic | Default (python) | Default (nextjs) | Default (react) |
@@ -96,7 +102,7 @@ Auto-detect or use defaults for:
 
 ## Step 4: Create Project Files
 
-**All files are created inside `{project-name}/`.** This step creates the project structure, discovers trending ideas, and generates the welcome page content.
+**All files are created inside `{project-name}/`.** This step creates the project structure, optionally discovers trending ideas (based on `IDEA_MODE` from Step 3), and generates the welcome page content.
 
 ### 4.1: Project Structure
 
@@ -439,6 +445,8 @@ export default defineConfig({
 
 ### 4.2: Discover Trending Ideas
 
+> **Only run if `IDEA_MODE = explore`.** If `IDEA_MODE = has-idea`, skip to Step 4.3a.
+
 **The AI discovers what's trending to spark your direction.**
 
 The welcome page features **3 cyclable themes**, each with CONSTELLATIONS (trending) and UNCHARTED (blue ocean) ideas. Users click the footer to cycle through themes.
@@ -473,7 +481,349 @@ Before generating the welcome page, search the web for **3 distinct theme catego
 
 ---
 
-### 4.3: Welcome Page Content
+### 4.3a: Simple Welcome Page (`IDEA_MODE = has-idea`)
+
+> **Only run if `IDEA_MODE = has-idea`.** If `IDEA_MODE = explore`, skip to Step 4.3b.
+
+Generate a clean welcome page without trending ideas. No CONSTELLATIONS, no UNCHARTED, no theme cycling.
+
+#### For python-cli-with-webui (webui/index.html):
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROJECT_NAME</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        @keyframes warm-pulse {
+            0%, 100% { color: #ffd700; }
+            25% { color: #f0883e; }
+            50% { color: #ff6b6b; }
+            75% { color: #ffd700; }
+        }
+        @keyframes cool-shift {
+            0%, 100% { color: #58a6ff; }
+            25% { color: #bc8cff; }
+            50% { color: #79c0ff; }
+            75% { color: #d2a8ff; }
+        }
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            background: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        .container { width: 600px; max-width: 100%; padding: 2rem; }
+        .constellation {
+            color: #58a6ff;
+            white-space: pre;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            text-align: center;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #58a6ff, #7ee787, #58a6ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .constellation .star { -webkit-text-fill-color: #f0883e; }
+        .constellation .star-bright {
+            -webkit-text-fill-color: initial;
+            animation: warm-pulse 2s infinite;
+        }
+        .constellation .star-cool {
+            -webkit-text-fill-color: initial;
+            animation: cool-shift 1.5s infinite;
+        }
+        .title { text-align: center; margin-bottom: 0.25rem; }
+        .title h1 { color: #c9d1d9; font-size: 1.1rem; font-weight: normal; }
+        .section {
+            border: 1px solid #30363d;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #8b949e;
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 0.5rem;
+        }
+        .header-art {
+            font-size: 0.75rem;
+            letter-spacing: 0.3em;
+        }
+        .header-art .star { color: #f0883e; }
+        .status-line {
+            text-align: center;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+            color: #7ee787;
+        }
+        .status-line .dim { color: #8b949e; }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+        }
+        .nav-list li {
+            margin: 0.3rem 0;
+            font-size: 0.85rem;
+        }
+        .nav-list .cmd { color: #7ee787; }
+        .nav-list .desc { color: #8b949e; }
+        .next-waypoint {
+            border: 1px solid #f0883e;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .next-waypoint .header {
+            color: #f0883e;
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            margin-bottom: 0.5rem;
+        }
+        .next-waypoint code {
+            color: #7ee787;
+            font-size: 0.85rem;
+        }
+        .next-waypoint .hint {
+            color: #8b949e;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <pre class="constellation">            <span class="star-bright">★</span>
+       TRUE NORTH
+            │
+    ┌───────┼───────┐
+    <span class="star-cool">☆</span>       <span class="star-cool">☆</span>       <span class="star-cool">☆</span>
+guardrails cli-first e2e-truth</pre>
+
+        <div class="title">
+            <h1>Welcome to PROJECT_NAME</h1>
+        </div>
+        <p class="status-line">☆ Kickstarted <span class="dim">— scaffold complete, ready to navigate</span></p>
+
+        <div class="section">
+            <div class="section-header">
+                <span>── NAVIGATION ──</span>
+                <span class="header-art"><span class="star">☆</span></span>
+            </div>
+            <ul class="nav-list">
+                <li><span class="cmd">/ux-planner</span>   <span class="desc">— chart your first feature</span></li>
+                <li><span class="cmd">/create-task</span>  <span class="desc">— build with tests baked in</span></li>
+                <li><span class="cmd">/research</span>     <span class="desc">— evaluate tech for your stack</span></li>
+                <li><span class="cmd">/coding-guard</span> <span class="desc">— check for anti-patterns</span></li>
+                <li><span class="cmd">/e2e</span>          <span class="desc">— prove it works end-to-end</span></li>
+            </ul>
+        </div>
+
+        <div class="next-waypoint">
+            <div class="header">★ NEXT WAYPOINT</div>
+            <code>/ux-planner "I want to build [your idea]"</code>
+            <p class="hint">chart your course before you build</p>
+        </div>
+
+        <!-- Debug container for tests -->
+        <div id="app-debug" style="display: none;">
+            <pre id="debug-state"></pre>
+            <div id="debug-log"></div>
+        </div>
+    </div>
+
+    <script>
+        window.appState = {
+            view: 'welcome',
+            initialized: true
+        };
+    </script>
+</body>
+</html>
+```
+
+#### For nextjs-with-cli and react-with-cli (src/App.tsx):
+
+```tsx
+import React, { useEffect } from 'react';
+
+const s = {
+  body: {
+    fontFamily: "'SF Mono', 'Monaco', 'Inconsolata', monospace",
+    background: '#0d1117',
+    color: '#c9d1d9',
+    minHeight: '100vh',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '2rem',
+  },
+  container: { width: '600px', maxWidth: '100%', padding: '2rem' },
+  constellation: {
+    color: '#58a6ff',
+    whiteSpace: 'pre' as const,
+    fontSize: '0.85rem',
+    lineHeight: 1.4,
+    textAlign: 'center' as const,
+    marginBottom: '1rem',
+  },
+  starBright: { color: '#ffd700' },
+  starCool: { color: '#58a6ff' },
+  star: { color: '#f0883e' },
+  title: { textAlign: 'center' as const, marginBottom: '0.25rem' },
+  h1: { color: '#c9d1d9', fontSize: '1.1rem', fontWeight: 'normal' as const },
+  statusLine: {
+    textAlign: 'center' as const,
+    fontSize: '0.85rem',
+    marginBottom: '1.5rem',
+    color: '#7ee787',
+  },
+  section: {
+    border: '1px solid #30363d',
+    padding: '1rem',
+    marginBottom: '1rem',
+  },
+  sectionHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    color: '#8b949e',
+    fontSize: '0.7rem',
+    letterSpacing: '0.15em',
+    marginBottom: '0.75rem',
+    borderBottom: '1px solid #30363d',
+    paddingBottom: '0.5rem',
+  },
+  headerArt: {
+    fontSize: '0.75rem',
+    letterSpacing: '0.3em',
+  },
+  dim: { color: '#8b949e' },
+  navItem: { margin: '0.3rem 0', fontSize: '0.85rem' },
+  cmd: { color: '#7ee787' },
+  desc: { color: '#8b949e' },
+  nextWaypoint: {
+    border: '1px solid #f0883e',
+    padding: '1rem',
+    marginBottom: '1rem',
+    textAlign: 'center' as const,
+  },
+  nextHeader: {
+    color: '#f0883e',
+    fontSize: '0.7rem',
+    letterSpacing: '0.15em',
+    marginBottom: '0.5rem',
+  },
+  nextCode: { color: '#7ee787', fontSize: '0.85rem' },
+  nextHint: { color: '#8b949e', fontSize: '0.75rem', marginTop: '0.5rem' },
+};
+
+export default function App() {
+  useEffect(() => {
+    (window as any).appState = {
+      view: 'welcome',
+      initialized: true
+    };
+  }, []);
+
+  return (
+    <div style={s.body}>
+      <div style={s.container}>
+        <style>{`
+          html, body { margin: 0; padding: 0; background: #0d1117; }
+          @keyframes warm-pulse {
+            0%, 100% { color: #ffd700; }
+            25% { color: #f0883e; }
+            50% { color: #ff6b6b; }
+            75% { color: #ffd700; }
+          }
+          @keyframes cool-shift {
+            0%, 100% { color: #58a6ff; }
+            25% { color: #bc8cff; }
+            50% { color: #79c0ff; }
+            75% { color: #d2a8ff; }
+          }
+          .constellation-art {
+            background: linear-gradient(135deg, #58a6ff, #7ee787, #58a6ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+          }
+          .constellation-art .star-bright-icon {
+            -webkit-text-fill-color: initial;
+            animation: warm-pulse 2s infinite;
+          }
+          .constellation-art .star-cool-icon {
+            -webkit-text-fill-color: initial;
+            animation: cool-shift 1.5s infinite;
+          }
+        `}</style>
+        <pre style={s.constellation} className="constellation-art">
+{`            `}<span style={s.starBright} className="star-bright-icon">★</span>{`
+       TRUE NORTH
+            │
+    ┌───────┼───────┐
+    `}<span style={s.starCool} className="star-cool-icon">☆</span>{`       `}<span style={s.starCool} className="star-cool-icon">☆</span>{`       `}<span style={s.starCool} className="star-cool-icon">☆</span>{`
+guardrails cli-first e2e-truth`}
+        </pre>
+
+        <div style={s.title}>
+          <h1 style={s.h1}>Welcome to PROJECT_NAME</h1>
+        </div>
+        <p style={s.statusLine}>☆ Kickstarted <span style={s.dim}>— scaffold complete, ready to navigate</span></p>
+
+        <div style={s.section}>
+          <div style={s.sectionHeader}>
+            <span>── NAVIGATION ──</span>
+            <span style={s.headerArt}><span style={s.star}>☆</span></span>
+          </div>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <li style={s.navItem}><span style={s.cmd}>/ux-planner</span>   <span style={s.desc}>— chart your first feature</span></li>
+            <li style={s.navItem}><span style={s.cmd}>/create-task</span>  <span style={s.desc}>— build with tests baked in</span></li>
+            <li style={s.navItem}><span style={s.cmd}>/research</span>     <span style={s.desc}>— evaluate tech for your stack</span></li>
+            <li style={s.navItem}><span style={s.cmd}>/coding-guard</span> <span style={s.desc}>— check for anti-patterns</span></li>
+            <li style={s.navItem}><span style={s.cmd}>/e2e</span>          <span style={s.desc}>— prove it works end-to-end</span></li>
+          </ul>
+        </div>
+
+        <div style={s.nextWaypoint}>
+          <div style={s.nextHeader}>★ NEXT WAYPOINT</div>
+          <code style={s.nextCode}>/ux-planner "I want to build [your idea]"</code>
+          <p style={s.nextHint}>chart your course before you build</p>
+        </div>
+
+        {/* Debug container for tests */}
+        <div id="app-debug" style={{ display: 'none' }}>
+          <pre id="debug-state"></pre>
+          <div id="debug-log"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+**Replace placeholder:** `PROJECT_NAME` with the user's project name. No THEME placeholders apply to these templates.
+
+---
+
+### 4.3b: Full Welcome Page (`IDEA_MODE = explore`)
+
+> **Only run if `IDEA_MODE = explore`.** If `IDEA_MODE = has-idea`, use Step 4.3a above instead.
 
 Generate the welcome page with dynamic trending content from 4.2.
 

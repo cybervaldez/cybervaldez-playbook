@@ -15,7 +15,7 @@ If you're a founder, tech lead, or recruiter considering working with me, this r
 
 ### 2. For Founders & Developers Ready to Kickstart An Idea
 - 14 skills guide the AI through planning, building, testing, and consultation*
-- Not sure what to build yet? AI discovers trending ideas to spark your direction
+- Not sure what to build yet? Optionally discover trending ideas to spark your direction
 - No manual setup—everything configured automatically**
 
 *Need help at any stage? I'm available for consulting and development work.
