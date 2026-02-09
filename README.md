@@ -1466,6 +1466,8 @@ The UX patterns reference includes timeless principles that apply to any web pro
 │   │   │       └── persona-roster.md
 │   │
 │   ├── browser/                        # For browser-testing projects
+│   │   ├── references/
+│   │   │   └── element-operations.md
 │   │   ├── ux-review/
 │   │   │   └── SKILL.md
 │   │   ├── e2e-guard/

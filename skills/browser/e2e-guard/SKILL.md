@@ -198,15 +198,18 @@ git add .
 
 ### Step 2: Categorize Changes
 
-| File Pattern | Test Type | Tool |
-|--------------|-----------|------|
-| `{{WEBUI_PATH}}/server/api/*.py` | API test | curl via `api_call` |
-| `{{WEBUI_PATH}}/js/modal/*.js` | Modal UI test | agent-browser |
-| `{{WEBUI_PATH}}/js/home/*.js` | Home grid test | agent-browser |
-| `{{WEBUI_PATH}}/js/sidebar/*.js` | Sidebar test | agent-browser |
-| `{{WEBUI_PATH}}/js/core/*.js` | Core integration | agent-browser |
-| `src/*.py` | API integration | curl via `api_call` |
-| `*.css` | Visual only | Skip (no auto-test) |
+| File Pattern | Test Type | Category | Tool |
+|--------------|-----------|----------|------|
+| `{{WEBUI_PATH}}/server/api/*.py` | API test | — | curl via `api_call` |
+| `{{WEBUI_PATH}}/js/modal/*.js` | Modal UI test | — | agent-browser |
+| `{{WEBUI_PATH}}/js/home/*.js` | Home grid test | — | agent-browser |
+| `{{WEBUI_PATH}}/js/sidebar/*.js` | Sidebar test | — | agent-browser |
+| `{{WEBUI_PATH}}/js/core/*.js` | Core integration | — | agent-browser |
+| `{{WEBUI_PATH}}/js/sidebar/*.js` `{{WEBUI_PATH}}/js/nav/*.js` `*router*.js` | Navigation | `[NAV]` | agent-browser |
+| `src/*.py` | API integration | — | curl via `api_call` |
+| `*.css` | Visual only | — | Skip (no auto-test) |
+
+See `skills/browser/references/element-operations.md` for the full element operation category dictionary and test naming conventions.
 
 ### Step 3: Check Existing Coverage
 
@@ -348,6 +351,95 @@ agent-browser close 2>/dev/null || true
 print_summary
 ```
 
+#### 4.4 Navigation Tests (agent-browser)
+
+For sidebar, nav, or routing changes:
+
+```bash
+#!/bin/bash
+set +e
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/test_utils.sh"
+
+PORT="${1:-{{SERVER_PORT}}}"
+BASE_URL="http://localhost:$PORT"
+
+setup_cleanup
+print_header "Navigation Tests"
+
+SKIP_MUTATE='create\|add\|save\|edit\|delete\|remove\|submit\|confirm\|login\|logout\|register\|run\|start\|stop\|generate\|export\|download\|cancel\|publish\|deploy'
+
+if ! wait_for_server "$BASE_URL"; then
+    log_fail "Server not running"
+    exit 1
+fi
+
+# Test: Sidebar item navigation (NAV elements only — skip mutation elements)
+log_test "Sidebar item navigates to correct view"
+agent-browser open "$BASE_URL/"
+sleep 2
+agent-browser snapshot -i > /tmp/nav-snap-$$.txt
+SIDEBAR_REF=$(grep -i "sidebar\|aside\|nav" /tmp/nav-snap-$$.txt | grep -vi "$SKIP_MUTATE" | grep -oE '@e[0-9]+' | head -1)
+if [ -n "$SIDEBAR_REF" ]; then
+    BEFORE_URL=$(agent-browser get url 2>/dev/null)
+    agent-browser click "$SIDEBAR_REF"
+    sleep 1
+    AFTER_URL=$(agent-browser get url 2>/dev/null)
+    SNAPSHOT=$(agent-browser snapshot -c)
+    if [ "$BEFORE_URL" != "$AFTER_URL" ] || echo "$SNAPSHOT" | grep -qi "active\|selected"; then
+        log_pass "Sidebar item responded: $BEFORE_URL -> $AFTER_URL"
+    else
+        log_fail "Sidebar item click produced no change"
+    fi
+else
+    log_pass "No sidebar elements to test (skip)"
+fi
+
+# Test: URL state sync
+log_test "URL reflects navigation state"
+agent-browser open "$BASE_URL/?param=value"
+sleep 2
+CURRENT_URL=$(agent-browser get url 2>/dev/null)
+if echo "$CURRENT_URL" | grep -q "param=value"; then
+    log_pass "URL preserves state parameters"
+else
+    log_fail "URL lost state parameters: $CURRENT_URL"
+fi
+
+# Test: Back button behavior
+log_test "Back button restores previous view"
+agent-browser open "$BASE_URL/"
+sleep 2
+agent-browser snapshot -i > /tmp/nav-snap-$$.txt
+NAV_REF=$(grep -vi "$SKIP_MUTATE" /tmp/nav-snap-$$.txt | grep -oE '@e[0-9]+' | head -1)
+if [ -n "$NAV_REF" ]; then
+    agent-browser click "$NAV_REF"
+    sleep 1
+    agent-browser back
+    sleep 1
+    BACK_URL=$(agent-browser get url 2>/dev/null)
+    if echo "$BACK_URL" | grep -q "localhost:$PORT"; then
+        log_pass "Back navigation works: $BACK_URL"
+    else
+        log_fail "Back navigation broken: $BACK_URL"
+    fi
+else
+    log_pass "No nav elements to test back button (skip)"
+fi
+
+# Test: No JS errors during navigation
+log_test "No JavaScript errors during navigation"
+JS_ERRORS=$(agent-browser errors 2>/dev/null || echo "")
+if [ -z "$JS_ERRORS" ] || echo "$JS_ERRORS" | grep -q "^\[\]$"; then
+    log_pass "No JS errors"
+else
+    log_fail "JS errors: $JS_ERRORS"
+fi
+
+agent-browser close 2>/dev/null || true
+print_summary
+```
+
 ### Step 5: Run Tests
 
 ```bash
@@ -398,6 +490,7 @@ bash {{TESTS_PATH}}/test_component.sh {{SERVER_PORT}}
 | API (shell) | `{{TESTS_PATH}}/` | `test_{feature}.sh` |
 | UI modal | `{{TESTS_PATH}}/ui/` | `test_{modal}_modal.sh` |
 | UI component | `{{TESTS_PATH}}/ui/` | `test_{component}.sh` |
+| Navigation | `{{TESTS_PATH}}/ui/` | `test_navigation.sh` |
 
 ## Standards Reference
 

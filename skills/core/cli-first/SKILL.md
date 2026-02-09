@@ -198,12 +198,25 @@ grep -rn "const state = " {{WEBUI_PATH}}/js/ | grep -v "window\."
 grep -rn "fetch(" {{WEBUI_PATH}}/js/ | grep -v "debugLog\|console\."
 ```
 
+**Check for non-canonical verbs in testids:**
+```bash
+# Canonical action verbs: create, add, save, edit, delete, remove, submit, confirm,
+#   login, logout, register, run, start, stop, generate, export, download, cancel, publish, deploy
+# Plus VIEW: expand, collapse, toggle, show, hide, sort, filter, search, refresh
+NON_CANONICAL='destroy\|purge\|wipe\|trash\|erase\|drop\|update\|modify\|rename\|apply\|overwrite\|merge\|patch\|insert\|upload\|import\|clone\|duplicate\|send\|proceed\|done\|finish\|accept\|approve\|execute\|trigger\|process\|build\|queue\|dismiss'
+
+grep -rn 'data-testid=' {{WEBUI_PATH}}/*.html | grep -oP 'data-testid="[^"]*"' | grep -iE "$NON_CANONICAL"
+```
+
 **Violations:**
 | Issue | Example | Fix |
 |-------|---------|-----|
 | Missing testid | `<button>Generate</button>` | `<button data-testid="bake-generate-btn">` |
 | Closure state | `let state = {}` | `window.ModalState = state` or debug container |
 | Silent API | `fetch('/api/x')` | Add debug logging or expose response |
+| Non-canonical testid action | `data-testid="user-destroy-btn"` | `data-testid="user-delete-btn"` |
+
+See `skills/browser/references/element-operations.md` → Canonical Verbs.
 
 ---
 
