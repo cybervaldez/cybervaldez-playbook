@@ -67,6 +67,16 @@ The playbook is reusable — kickstart or upgrade multiple projects from the sam
 
 ---
 
+## Examples
+
+See what a kickstarted project looks like. Browse the code to understand the scaffold, skills, and welcome page.
+
+| Project | Type | Description |
+|---------|------|-------------|
+| [playbook-react-cli-example](https://github.com/cybervaldez/playbook-react-cli-example) | `react-with-cli` | React + Vite + TypeScript scaffold with 14 AI skills installed |
+
+---
+
 ## Start Here: Recommended Reading Order
 
 New to the playbook? Follow this path:

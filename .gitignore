@@ -42,3 +42,4 @@ tests/e2e-runs/
 # Each kickstart/upgrade dynamically adds {project-name}/ here as the final step
 cybervaldez-prompt-generator/
 playbook-react-with-cli-example/
+rive-playbook-guidelines/
