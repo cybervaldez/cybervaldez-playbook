@@ -32,6 +32,18 @@ Before executing, check for technology-specific test orchestration patterns:
 
 ---
 
+## Project Context Detection
+
+After Tech Context Detection, classify the project to prioritize test phases:
+
+1. **Read project signals** — `README.md`, `package.json` description/dependencies, existing routes
+2. **Classify into 1-2 archetypes** from `PROJECT_CONTEXT.md` taxonomy
+3. **Apply archetype context** — use per-skill mapping table in `PROJECT_CONTEXT.md` to adjust phase priorities and verification criteria
+
+Note: Unlike ux-planner/ui-planner, e2e does not need user confirmation of archetype — it uses the classification silently to inform test phase prioritization.
+
+---
+
 # E2E Test Orchestrator
 
 Full end-to-end test suite with visual verification via screenshots.

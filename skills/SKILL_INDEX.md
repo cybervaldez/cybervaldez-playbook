@@ -97,6 +97,7 @@ After kickstart, skills are in `.claude/skills/`:
 .claude/skills/
 ├── SKILL_INDEX.md          # This file
 ├── TECH_CONTEXT.md         # Domain classification
+├── PROJECT_CONTEXT.md      # Content archetype taxonomy
 ├── research/SKILL.md       # /research
 ├── ux-planner/SKILL.md     # /ux-planner
 ├── ui-planner/SKILL.md     # /ui-planner

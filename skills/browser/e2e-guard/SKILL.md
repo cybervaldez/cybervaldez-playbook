@@ -31,6 +31,18 @@ Before generating tests, check for technology-specific coverage patterns:
 
 ---
 
+## Project Context Detection
+
+After Tech Context Detection, classify the project to generate archetype-appropriate tests:
+
+1. **Read project signals** — `README.md`, `package.json` description/dependencies, existing routes
+2. **Classify into 1-2 archetypes** from `PROJECT_CONTEXT.md` taxonomy
+3. **Apply archetype context** — use per-skill mapping table in `PROJECT_CONTEXT.md` to select must-test patterns for generated tests
+
+Note: Unlike ux-planner/ui-planner, e2e-guard does not need user confirmation of archetype — it uses the classification silently to inform test generation priorities.
+
+---
+
 # E2E Test Guard - Post-Implementation Test Generator
 
 > **PROJECT TESTING PHILOSOPHY**

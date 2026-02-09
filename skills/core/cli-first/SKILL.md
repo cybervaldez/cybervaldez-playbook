@@ -53,6 +53,18 @@ Before executing, check for technology-specific observability patterns:
 
 ---
 
+## Project Context Detection
+
+After Tech Context Detection, classify the project to tailor testID and state exposure recommendations:
+
+1. **Read project signals** — `README.md`, `package.json` description/dependencies, existing routes
+2. **Classify into 1-2 archetypes** from `PROJECT_CONTEXT.md` taxonomy
+3. **Apply archetype context** — use per-skill mapping table in `PROJECT_CONTEXT.md` to recommend archetype-appropriate testID conventions and state exposure
+
+Note: Unlike ux-planner/ui-planner, cli-first does not need user confirmation of archetype — it uses the classification silently to inform testID and state exposure recommendations.
+
+---
+
 # CLI-First - Observability for AI Verification
 
 > **The Core Philosophy**

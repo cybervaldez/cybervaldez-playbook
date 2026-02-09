@@ -63,6 +63,18 @@ Before executing, check for technology-specific patterns:
 
 ---
 
+## Project Context Detection
+
+After Tech Context Detection, classify the project to guide scaffolding and test fixtures:
+
+1. **Read project signals** — `README.md`, `package.json` description/dependencies, existing routes
+2. **Classify into 1-2 archetypes** from `PROJECT_CONTEXT.md` taxonomy
+3. **Apply archetype context** — use per-skill mapping table in `PROJECT_CONTEXT.md` to select appropriate test data patterns and scaffold hints
+
+Note: Unlike ux-planner/ui-planner, create-task does not need user confirmation of archetype — it uses the classification silently to inform test fixture selection and scaffold patterns.
+
+---
+
 # Task Implementation Skill
 
 You are implementing tasks for the {{PROJECT_NAME}} WebUI. Each task includes planning, implementation, and **automated e2e test validation**.
