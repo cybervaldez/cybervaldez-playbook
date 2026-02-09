@@ -292,6 +292,7 @@ This includes:
 ```bash
 cp skills/TECH_CONTEXT.md {project-name}/.claude/skills/
 cp skills/SKILL_INDEX.md {project-name}/.claude/skills/
+cp skills/PROJECT_CONTEXT.md {project-name}/.claude/skills/
 cp -r skills/research {project-name}/.claude/skills/
 ```
 

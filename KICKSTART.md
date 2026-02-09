@@ -1059,12 +1059,14 @@ This includes:
 ```bash
 cp skills/TECH_CONTEXT.md {project-name}/.claude/skills/
 cp skills/SKILL_INDEX.md {project-name}/.claude/skills/
+cp skills/PROJECT_CONTEXT.md {project-name}/.claude/skills/
 cp -r skills/research {project-name}/.claude/skills/
 ```
 
 This includes:
 - TECH_CONTEXT.md (domain classification & skill concern matrix)
 - SKILL_INDEX.md (skill discovery index — run `/help` or read this to discover all 14 skills)
+- PROJECT_CONTEXT.md (content archetype taxonomy for project-aware skill recommendations)
 - research (technology research skill)
 
 **Step 5.3: Create techs/ directory for project-specific research:**

@@ -1399,6 +1399,7 @@ See `KICKSTART.md` "Post-Kickstart: Optional Customizations" section for customi
 | File | Purpose |
 |------|---------|
 | `skills/TECH_CONTEXT.md` | Preflight assumptions, domain classification, and skill concern matrix |
+| `skills/PROJECT_CONTEXT.md` | Content archetype taxonomy for project-aware skill recommendations |
 | `skills/core/ux-planner/references/ux-patterns.md` | UX laws, principles, and patterns database |
 | `skills/core/ui-planner/references/ui-patterns.md` | Design tokens, typography, color theory, and visual patterns |
 | `skills/core/ui-review/references/slop-research.md` | AI slop research methodology and detection patterns |
@@ -1431,6 +1432,7 @@ The UX patterns reference includes timeless principles that apply to any web pro
 ├── LICENSE                             # MIT License
 ├── skills/
 │   ├── TECH_CONTEXT.md                 # Domain classification & skill concern matrix
+│   ├── PROJECT_CONTEXT.md              # Content archetype taxonomy
 │   ├── core/                           # Always installed (all project types)
 │   │   ├── ux-planner/
 │   │   │   ├── SKILL.md
