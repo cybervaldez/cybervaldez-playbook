@@ -49,6 +49,9 @@ Space tokens:    --space-[a-z0-9-]+:\s*([^;]+);
 Radius tokens:   --radius-[a-z-]+:\s*([^;]+);
 Shadow tokens:   --shadow-[a-z-]+:\s*([^;]+);
 Transition:      --transition-[a-z-]+:\s*([^;]+);
+Easing tokens:   --ease-[a-z-]+:\s*([^;]+);
+Duration tokens: --duration-[a-z-]+:\s*([^;]+);
+Stagger tokens:  --stagger-[a-z-]+:\s*([^;]+);
 ```
 
 ### Parsing Tailwind Config
@@ -88,7 +91,7 @@ Map extracted tokens to audit categories:
 | `--space-*`, `--gap-*`, `--padding-*` | Layout (spacing) |
 | `--radius-*`, `--rounded-*` | Components (radius) |
 | `--shadow-*` | Components (elevation) |
-| `--transition-*`, `--ease-*`, `--duration-*` | Motion |
+| `--transition-*`, `--ease-*`, `--duration-*`, `--stagger-*` | Motion |
 
 ---
 
@@ -279,6 +282,87 @@ Baseline knowledge for common aesthetics. Web search updates these.
 | Minimal palette | Lacks energy | Teal/purple/pink gradients |
 | Static design | Missing playfulness | Bouncy animations, glows |
 | System fonts | Too generic | Geometric, display fonts |
+
+---
+
+## Motion-Specific AI Slop Indicators
+
+AI-generated code tends to produce recognizable motion anti-patterns. Flag these during review.
+
+### Universal Motion Slop
+
+| Slop Pattern | Why It's Slop | What to Do Instead |
+|--------------|---------------|-------------------|
+| Gratuitous bounce on everything | AI defaults to `ease-bounce` / spring overshoot everywhere | Reserve bounce for emphasis; use `--ease-enter` for standard transitions |
+| Unnecessary parallax | Added for "wow factor" with no content purpose | Only use scroll-driven animation when it aids comprehension |
+| Hardcoded `transition: all 0.3s ease` | Generic timing, bypasses design tokens, `all` is wasteful | Use `transition: {property} var(--duration-small) var(--ease-enter)` |
+| Every element fades in on scroll | Repetitive, slows perceived performance | Limit entrance animations to key content; most elements should be visible immediately |
+| Spinning loaders with no fallback | No `prefers-reduced-motion` handling | Provide static or pulsing alternative |
+| Hover scale on every card | Generic "interactive" feel | Use aesthetic-appropriate hover: border highlight, subtle opacity, or bg shift |
+| Slide-in from random directions | Elements enter from left, right, top with no spatial logic | Consistent entry direction that matches reading flow or navigation hierarchy |
+| 3+ simultaneous animations | Visual chaos, eye doesn't know where to look | Stagger with `--stagger-delay` or limit to 1-2 focal animations |
+
+### Aesthetic-Specific Motion Slop
+
+| Aesthetic | Motion Slop | Why It Doesn't Fit | Instead |
+|-----------|-------------|-------------------|---------|
+| Brutalist | Smooth easing, spring physics | Too polished for raw aesthetic | Instant transitions, `linear`, or step functions |
+| Brutalist | Fade transitions | Too gentle | Hard cuts, no transition |
+| Neo-Minimal | Bouncy/elastic animations | Too energetic for calm feel | Slow `ease-in-out`, subtle opacity shifts |
+| Neo-Minimal | Complex stagger sequences | Too busy | Simple fade, minimal motion |
+| Dark Industrial | Organic/wobbly motion | Contradicts precision | `--ease-sharp`, mechanical timing |
+| Dark Industrial | Slow page transitions | Feels sluggish | Medium-fast, precise timing |
+| Warm Organic | Mechanical/linear easing | Feels robotic | `--ease-spring-soft`, natural deceleration |
+| Retro-Futurism | No animation at all | Contradicts playful energy | Spring physics, bounce, glow pulses |
+| Art Deco | Fast/snappy transitions | Contradicts luxury | Slow, elegant `ease-in-out` |
+| Soft Pastel | Abrupt/instant transitions | Jarring for calming aesthetic | Gentle fades, slow easing |
+
+### Performance Motion Slop
+
+| Slop Pattern | Impact | Detection | Fix |
+|--------------|--------|-----------|-----|
+| Animating `width`/`height` | Layout recalc every frame → jank | Search for `transition:.*width\|height` | Use `transform: scale()` |
+| Animating `top`/`left`/`margin` | Layout thrash | Search for `transition:.*top\|left\|margin` | Use `transform: translate()` |
+| `will-change` on everything | GPU memory waste | Search for `will-change` applied broadly | Apply only during animation, remove after |
+| `transition: all` | Transitions every property including layout | Search for `transition:\s*all` | Specify exact properties: `transition: transform, opacity` |
+| JS `setInterval` for animation | Not synced to frame rate → jank | Search for `setInterval.*animation\|animate` | Use `requestAnimationFrame` or CSS animations |
+| Animation-induced layout shift | Content jumps as elements animate height/margin | Check CLS in Lighthouse; search for `height: 0` → `height: auto` transitions | Use `transform`, `grid-template-rows: 0fr→1fr`, or `clip-path` |
+| Missing `aspect-ratio` on media | Images/embeds cause reflow when loaded | Search for `<img>` without `width`/`height` or `aspect-ratio` | Always set explicit dimensions or `aspect-ratio` |
+| Dynamic content pushing layout | Toasts, banners, injected elements shift page content | Check if toasts use `position: static` or flex within flow | Use `position: fixed/absolute` — overlay, never displace |
+
+### Distracting & Flashy Motion Slop
+
+| Slop Pattern | Why It's Harmful | Detection | Fix |
+|--------------|-----------------|-----------|-----|
+| Every section has entrance animation | User watches animations instead of reading content | Count elements with `animation` or `IntersectionObserver` reveal | Limit to 1-2 key sections; rest should be visible immediately |
+| Entrance animations replay on every scroll | Repeated novelty becomes annoyance | Check if `IntersectionObserver` re-triggers on re-entry | Animate once; use a `data-animated` flag to skip repeats |
+| Parallax on text content | Text moves while reading → readability destroyed | Check for parallax/scroll-transform on text containers | Reserve parallax for decorative non-text layers only |
+| Looping/pulsing decorative elements on idle | Page feels "busy" even when user isn't interacting | Search for `animation-iteration-count: infinite` outside loading states | Limit infinite animation to spinners/loaders only |
+| Multiple competing focal animations | Eye has no clear priority; cognitive overload | Count simultaneous animations on viewport | One dominant motion per viewport; others subtle or delayed |
+| Slow theatrical page transitions (> 500ms) | Blocks user interaction; feels sluggish | Check page transition duration | Keep navigation transitions < 400ms; use ease-out |
+
+### Accessibility Motion Slop
+
+| Slop Pattern | Accessibility Impact | Fix |
+|--------------|---------------------|-----|
+| No `prefers-reduced-motion` query | Users with vestibular disorders get no relief | Add media query that disables/reduces all motion |
+| Reduced motion just sets `display: none` | Removes content instead of removing motion | Set `animation: none; transition: none` instead |
+| Auto-playing carousel/slider | Vestibular trigger, no user control | Require user interaction to start; add pause button |
+| Background video with no pause | Peripheral motion distraction | Add pause control; respect reduced-motion |
+| Infinite animation loops | Can trigger seizures or nausea | Limit iterations; provide stop mechanism |
+| Large zoom/scale transitions | Spatial disorientation | Use crossfade instead under reduced-motion |
+
+### Motion Token Extraction for Review
+
+When checking styleguide compliance, look for these motion token patterns:
+
+```
+Motion tokens:   --ease-[a-z-]+:\s*([^;]+);
+                 --duration-[a-z-]+:\s*([^;]+);
+                 --stagger-[a-z-]+:\s*([^;]+);
+```
+
+If motion tokens exist in styleguide but hardcoded values are used in components → automatic score 0 (styleguide deviation).
 
 ---
 

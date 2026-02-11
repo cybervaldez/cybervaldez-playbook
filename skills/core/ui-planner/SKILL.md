@@ -109,6 +109,11 @@ A visual design advisor that helps establish visual identity through an interact
 |  → Present 6-8 layout patterns as ASCII thumbnails                 |
 |  → User multi-selects (e.g., "1, 3")                               |
 |                                                                    |
+|  STEP 2.5: Motion Direction                                        |
+|  → Present motion preset derived from chosen aesthetic              |
+|  → Generate motion design tokens                                   |
+|  → Ask about gesture/advanced animation needs                      |
+|                                                                    |
 |  STEP 3: Generate HTML Previews                                    |
 |  → Create preview files for each aesthetic+layout combo            |
 |  → Each preview has light/dark toggle                              |
@@ -247,6 +252,119 @@ All 8 remain available — these are suggestions, not restrictions.
 ```
 
 See `PROJECT_CONTEXT.md` for archetype-to-layout mapping.
+
+---
+
+## Step 2.5: Motion Direction
+
+After aesthetic and layout selections, present a motion preset derived from the chosen aesthetic. Motion direction is not a separate gallery — it flows from the aesthetic choice.
+
+### Motion Preset by Aesthetic
+
+Each aesthetic implies a motion personality. Present the matching preset and let the user confirm or adjust:
+
+```
++-------------------------------------------------------------------------+
+| STEP 2.5: Motion Direction                                               |
++-------------------------------------------------------------------------+
+|                                                                          |
+| Based on your {aesthetic} selection, here's the motion direction:        |
+|                                                                          |
+| Motion Preset: {PRESET NAME}                                             |
+| ─────────────────────────────────────────────────────────────────        |
+| Easing:    {description}                                                 |
+| Timing:    {description}                                                 |
+| Character: {description}                                                 |
+|                                                                          |
+| Motion Tokens:                                                           |
+| --ease-enter:      {value}                                               |
+| --ease-exit:       {value}                                               |
+| --ease-emphasis:   {value}                                               |
+| --duration-micro:  {value}    (hover, toggle, focus)                     |
+| --duration-small:  {value}    (accordion, tab switch)                    |
+| --duration-medium: {value}    (modal, drawer, panel)                     |
+| --duration-page:   {value}    (route transition, page enter)             |
+| --stagger-delay:   {value}    (between sibling elements)                 |
+|                                                                          |
+| Does this project need gesture interactions?                             |
+| (drag, swipe, scroll-driven, pinch-to-zoom)                             |
+|                                                                          |
+| → "yes" — I'll recommend a motion library                               |
+| → "no"  — CSS transitions/animations are sufficient                      |
+| → "adjust [token]" — tweak a specific value                              |
+|                                                                          |
++-------------------------------------------------------------------------+
+```
+
+### Aesthetic → Motion Preset Mapping
+
+| Aesthetic | Preset Name | Easing Character | Timing | Enter Easing | Exit Easing |
+|-----------|------------|-----------------|--------|-------------|------------|
+| Brutalist | **Abrupt** | No cushioning, instant | Very fast | `linear` | `linear` |
+| Neo-Minimal | **Serene** | Gentle, barely noticeable | Slow | `cubic-bezier(0.25, 0.1, 0.25, 1)` | `cubic-bezier(0.25, 0.1, 0.25, 1)` |
+| Maximalist | **Dramatic** | Expressive, varied | Mixed | `cubic-bezier(0.34, 1.56, 0.64, 1)` | `cubic-bezier(0.4, 0, 1, 1)` |
+| Dark Industrial | **Mechanical** | Precise, linear segments | Medium-fast | `cubic-bezier(0.4, 0, 0.6, 1)` | `cubic-bezier(0.4, 0, 0.6, 1)` |
+| Warm Organic | **Organic** | Natural, ease-heavy | Medium | `cubic-bezier(0.22, 1, 0.36, 1)` | `cubic-bezier(0.4, 0, 0.2, 1)` |
+| Retro-Futurism | **Bouncy** | Overshoot, playful | Medium | `cubic-bezier(0.68, -0.55, 0.265, 1.55)` | `cubic-bezier(0.4, 0, 0.2, 1)` |
+| Art Deco | **Luxurious** | Smooth, elegant curves | Slow-medium | `cubic-bezier(0.25, 0.46, 0.45, 0.94)` | `cubic-bezier(0.25, 0.46, 0.45, 0.94)` |
+| Soft Pastel | **Gentle** | Soft, calming | Slow | `cubic-bezier(0.25, 0.1, 0.25, 1)` | `cubic-bezier(0.25, 0.1, 0.25, 1)` |
+
+### Default Motion Tokens by Preset
+
+```css
+/* Example: Mechanical preset (Dark Industrial) */
+:root {
+  /* Easing */
+  --ease-enter: cubic-bezier(0.4, 0, 0.6, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 0.6, 1);
+  --ease-emphasis: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Duration */
+  --duration-micro: 100ms;
+  --duration-small: 200ms;
+  --duration-medium: 300ms;
+  --duration-page: 400ms;
+
+  /* Stagger */
+  --stagger-delay: 50ms;
+}
+```
+
+### Gesture Needs Assessment
+
+If user answers "yes" to gesture interactions:
+
+| Gesture Need | Recommended Library | When to Use |
+|-------------|-------------------|------------|
+| Drag & drop | `@dnd-kit/core` or `framer-motion` | Reorderable lists, kanban boards |
+| Swipe actions | `framer-motion` | Mobile-first UIs, card stacks |
+| Scroll-driven | CSS `animation-timeline: scroll()` | Parallax, progress indicators |
+| Spring physics | `framer-motion` or `react-spring` | Natural-feeling interactions |
+| Complex sequences | `framer-motion` + `AnimatePresence` | Page transitions, coordinated enter/exit |
+| SVG/canvas animation | `gsap` | Data visualization, complex path animation |
+
+Note the recommendation in the handoff spec so `/create-task` knows which dependency to install.
+
+### Reduced Motion Alternatives
+
+Every motion preset must include a reduced-motion fallback:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ease-enter: linear;
+    --ease-exit: linear;
+    --ease-emphasis: linear;
+    --duration-micro: 0ms;
+    --duration-small: 0ms;
+    --duration-medium: 0ms;
+    --duration-page: 0ms;
+    --stagger-delay: 0ms;
+  }
+}
+```
+
+Present this alongside the main tokens. If the user has specific reduced-motion preferences (e.g., "keep subtle fades but remove transforms"), note the overrides.
 
 ---
 
@@ -402,10 +520,20 @@ Create `styleguide.css` with:
   --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
   --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
 
-  /* Transitions */
+  /* Transitions (legacy shorthand) */
   --transition-fast: 150ms ease;
   --transition-base: 200ms ease;
   --transition-slow: 300ms ease;
+
+  /* Motion Direction (from Step 2.5) */
+  --ease-enter: /* from aesthetic preset */;
+  --ease-exit: /* from aesthetic preset */;
+  --ease-emphasis: /* from aesthetic preset */;
+  --duration-micro: /* hover, toggle, focus */;
+  --duration-small: /* accordion, tab switch */;
+  --duration-medium: /* modal, drawer, panel */;
+  --duration-page: /* route transition, page enter */;
+  --stagger-delay: /* between sibling elements */;
 }
 
 /* Dark Theme */
@@ -473,6 +601,7 @@ Spacing: Tight, intentional crowding, bold borders
 Borders: Thick (3-4px), sharp corners
 Shadows: None or hard offset (no blur)
 Animation: Abrupt, no easing
+Motion preset: Abrupt
 ```
 
 ### [B] Neo-Minimal
@@ -484,6 +613,7 @@ Spacing: Excessive whitespace, breathing room
 Borders: None or hairline (1px), subtle
 Shadows: None or very subtle
 Animation: Slow, subtle, ease-in-out
+Motion preset: Serene
 ```
 
 ### [C] Maximalist/Editorial
@@ -495,6 +625,7 @@ Spacing: Varied, asymmetrical, layered elements
 Borders: Varied weights, decorative
 Shadows: Multiple layers, depth
 Animation: Playful, varied timing
+Motion preset: Dramatic
 ```
 
 ### [D] Dark Industrial
@@ -506,6 +637,7 @@ Spacing: Grid-strict, modular
 Borders: Thin, precise, technical look
 Shadows: Subtle glow effects
 Animation: Precise, mechanical timing
+Motion preset: Mechanical
 ```
 
 ### [E] Warm Organic
@@ -517,6 +649,7 @@ Spacing: Comfortable, natural flow
 Borders: Soft, rounded, or none
 Shadows: Soft, natural lighting
 Animation: Gentle, organic easing
+Motion preset: Organic
 ```
 
 ### [F] Retro-Futurism
@@ -528,6 +661,7 @@ Spacing: Generous, rounded containers
 Borders: Rounded corners (full radius), glowing
 Shadows: Glows, neon effects
 Animation: Bouncy, playful easing
+Motion preset: Bouncy
 ```
 
 ### [G] Art Deco
@@ -539,6 +673,7 @@ Spacing: Symmetrical, balanced, geometric
 Borders: Geometric patterns, stepped
 Shadows: Subtle, elegant
 Animation: Smooth, luxurious timing
+Motion preset: Luxurious
 ```
 
 ### [H] Soft Pastel
@@ -550,6 +685,7 @@ Spacing: Generous, airy, light
 Borders: Soft, rounded, subtle
 Shadows: Soft, diffused
 Animation: Gentle, slow, calming
+Motion preset: Gentle
 ```
 
 ---
@@ -578,6 +714,22 @@ When user says "this one", produce:
 --font-heading: {value};
 /* ... key tokens */
 ```
+
+### Motion Direction
+- **Preset**: {preset name} (derived from {aesthetic})
+- **Tokens**:
+```css
+--ease-enter: {value};
+--ease-exit: {value};
+--ease-emphasis: {value};
+--duration-micro: {value};
+--duration-small: {value};
+--duration-medium: {value};
+--duration-page: {value};
+--stagger-delay: {value};
+```
+- **Gesture library**: {library if needed, or "None — CSS transitions sufficient"}
+- **Reduced motion**: Handled via `prefers-reduced-motion` (all durations → 0ms)
 
 ### Component Visual Requirements
 - [ ] Buttons: {spec with data-testid pattern}
@@ -638,7 +790,36 @@ Which layout(s) fit your dashboard? (Enter numbers, comma-separated)
 
 User: 2
 
-Skill: Dashboard layout selected. Generating preview...
+Skill: Dashboard layout selected.
+
++-----------------------------------------------------------------------+
+| STEP 2.5: Motion Direction                                             |
++-----------------------------------------------------------------------+
+
+Based on your Dark Industrial selection:
+
+Motion Preset: MECHANICAL
+──────────────────────────
+Easing:    Precise, linear-feeling segments
+Timing:    Medium-fast (100-400ms)
+Character: Technical, controlled
+
+Motion Tokens:
+--ease-enter:      cubic-bezier(0.4, 0, 0.6, 1)
+--ease-exit:       cubic-bezier(0.4, 0, 0.6, 1)
+--ease-emphasis:   cubic-bezier(0.4, 0, 0.2, 1)
+--duration-micro:  100ms
+--duration-small:  200ms
+--duration-medium: 300ms
+--duration-page:   400ms
+--stagger-delay:   50ms
+
+Does this project need gesture interactions?
+(drag, swipe, scroll-driven, pinch-to-zoom)
+
+User: no
+
+Skill: CSS transitions sufficient. Generating preview...
 
 [Creates webui/previews/preview-industrial-dashboard.html]
 
@@ -773,7 +954,7 @@ Skip `/ui-planner` when:
 - `/ux-planner` - Interaction flows and UX planning (run before this)
 - `/ui-review` - AI slop detection and design quality guard (run after this)
 - `/create-task` - Implementation with design tokens applied
-- `references/ui-patterns.md` - Design token hierarchy, typography, color theory
+- `references/ui-patterns.md` - Design token hierarchy, typography, color theory, motion reference
 
 ## UX Patterns Reference
 

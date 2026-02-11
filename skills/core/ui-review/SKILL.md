@@ -313,7 +313,7 @@ Common categories include:
 - **Color** - Palette cohesion, semantic meaning, theme adaptation
 - **Layout** - Spacing rhythm, visual tension, asymmetry/symmetry fit
 - **Components** - Radius variation, hierarchy clarity, styling intention
-- **Motion** - Hover states, transitions, micro-interactions
+- **Motion** - Motion token usage, transition quality, reduced-motion handling, performance
 - **Decoration** - Purpose-driven elements, brand reinforcement
 
 ### Pass Criteria
@@ -321,6 +321,105 @@ Common categories include:
 - **No blocking issues** (no scores of 0)
 - **Majority at 1+** with documented reasoning
 - Context determines acceptable trade-offs
+
+---
+
+## Motion Audit (Deep)
+
+The Motion category goes beyond "are hover states present?" to evaluate motion quality, token compliance, and accessibility.
+
+### Motion Audit Checklist
+
+| Check | What to Look For | Score 0 If... | Score 2 If... |
+|-------|-----------------|---------------|---------------|
+| **Token usage** | Are durations/easing using `--duration-*`, `--ease-*` tokens? | Hardcoded `200ms ease` or inline timing | All timing uses motion tokens from styleguide |
+| **Reduced motion** | Is `prefers-reduced-motion` handled? | No media query present anywhere | Media query reduces/removes all animations |
+| **Animation count** | How many elements animate simultaneously? | >3 simultaneous animations on screen | Animations are sequenced or limited |
+| **Composite properties** | Are animations GPU-friendly? | Animating `width`, `height`, `top`, `left`, `margin` | Only `transform` and `opacity` animated |
+| **Stagger consistency** | Do similar element groups use same stagger timing? | List A staggers at 50ms, list B at 120ms, no reason | Consistent `--stagger-delay` across similar groups |
+| **Aesthetic alignment** | Does motion match the declared aesthetic? | Bouncy spring on a Brutalist design | Abrupt transitions for Brutalist, gentle for Organic |
+| **Interaction feedback** | Do interactive elements respond to user action? | Buttons/links have no hover/active/focus transitions | All interactive elements have appropriate motion feedback |
+| **Layout shift** | Do animations cause content to jump/reflow? | Elements animate `height`/`margin`, pushing neighbors; images load without reserved space | All animations use `transform`/`opacity`; media has explicit dimensions |
+| **Distraction level** | Does motion guide attention or compete for it? | Entrance animations on every section; looping decoration; parallax on text | Motion limited to key moments; idle UI is still; parallax only on decorative layers |
+
+### Motion-Specific Flags
+
+When reviewing, explicitly check for these patterns:
+
+**Hardcoded durations (flag as styleguide deviation):**
+```css
+/* BAD */
+.modal { transition: opacity 300ms ease-in-out; }
+
+/* GOOD */
+.modal { transition: opacity var(--duration-medium) var(--ease-enter); }
+```
+
+**Layout-triggering animations (flag as performance issue):**
+```css
+/* BAD — triggers layout recalculation every frame */
+.drawer { transition: width 300ms ease; }
+.tooltip { transition: top 200ms ease; }
+
+/* GOOD — GPU-composited, 60fps */
+.drawer { transition: transform var(--duration-medium) var(--ease-enter); }
+.tooltip { transition: transform var(--duration-small) var(--ease-enter); }
+```
+
+**Excessive simultaneous animation (flag as motion overload):**
+```
+Three or more elements animating independently at the same time
+creates visual noise. Stagger them or reduce to 1-2 focal animations.
+```
+
+**Animation-induced layout shift (flag as CLS issue):**
+```
+Score 0 if any of these are true:
+- Elements animate height/width/margin, causing content below to shift
+- Images or embeds load without explicit width/height or aspect-ratio
+- Toasts or banners insert into document flow instead of overlaying
+- Accordion animations use height: 0 → height: auto instead of transform/grid
+```
+
+**Distracting/flashy motion (flag as usability issue):**
+```
+Score 0 if any of these are true:
+- Every section has entrance animation (user watches animation, not content)
+- Scroll-triggered animations replay every time element re-enters viewport
+- Parallax applied to text content (harms readability)
+- Looping decorative animations on idle (page feels "busy")
+- Page transitions > 500ms that block user interaction
+```
+
+**Missing reduced-motion handling (flag as accessibility issue):**
+```
+Score 0 if any of these are true:
+- No @media (prefers-reduced-motion: reduce) block
+- Reduced motion block only sets duration to 0 but leaves transforms
+- Auto-playing animations have no pause mechanism
+```
+
+### Motion Score in Report
+
+Include in the audit table with specific findings:
+
+```markdown
+| Category | Score | Issue | Why | Fix |
+|----------|-------|-------|-----|-----|
+| Motion: Token usage | 0 | 4 hardcoded durations | Styleguide deviation | Replace with var(--duration-*) |
+| Motion: Reduced motion | 0 | No media query | Accessibility gap | Add prefers-reduced-motion block |
+| Motion: Performance | 1 | Animating `left` on tooltip | Layout thrash | Use transform: translateX() |
+| Motion: Stagger | 2 | Consistent 50ms stagger | Matches --stagger-delay | - |
+| Motion: Aesthetic fit | 2 | Mechanical easing | Matches Industrial preset | - |
+```
+
+If motion was not planned via `/ui-planner` Step 2.5 (no motion tokens in styleguide), note this:
+
+```markdown
+**Motion tokens missing** — No --ease-enter, --duration-*, or --stagger-delay
+tokens found in styleguide. Consider running `/ui-planner` to establish
+motion direction, or add motion tokens manually.
+```
 
 ---
 
@@ -507,13 +606,21 @@ For Dark Industrial aesthetic:
 | Color | 2 | - | Cyan accent is distinctive | - |
 | Components | 0 | Cards use 1rem radius | Industrial = sharp corners | Use `--radius-sm` or none |
 | Layout | 1 | Same-size metrics | No hierarchy in dashboard | Vary metric card sizes |
-| Motion | 1 | Basic hover | Could use precision timing | Add `ease-sharp` transitions |
+| Motion: Tokens | 0 | Hardcoded `200ms ease` | Styleguide deviation | Use `var(--duration-small) var(--ease-enter)` |
+| Motion: Reduced motion | 0 | No media query | Accessibility gap | Add `prefers-reduced-motion` block |
+| Motion: Aesthetic fit | 1 | Basic hover | Could use mechanical timing | Use `var(--ease-enter)` from preset |
 
 ---
 
 ### Blocking Issues (Score = 0)
 1. **Components**: Card border-radius too rounded for Industrial aesthetic
    → Replace `border-radius: 1rem` with `var(--radius-sm)` or `0`
+
+2. **Motion: Tokens**: Hardcoded transition values bypass styleguide
+   → Replace `transition: all 200ms ease` with `transition: all var(--duration-small) var(--ease-enter)`
+
+3. **Motion: Reduced motion**: No `prefers-reduced-motion` media query
+   → Add reduced motion block (see `ui-patterns.md` Motion Sensitivity section)
 
 ---
 
@@ -522,9 +629,10 @@ For Dark Industrial aesthetic:
 ---
 
 ### Next Steps
-Fix the border-radius issue:
+Fix blocking issues:
 1. Update preview CSS: `.card { border-radius: var(--radius-sm); }`
-2. Or regenerate with `/ui-planner` specifying "sharp corners"
+2. Replace hardcoded transition timing with motion tokens
+3. Add `@media (prefers-reduced-motion: reduce)` block
 
 Then run `/ui-review` again.
 
@@ -547,7 +655,9 @@ Skill: Re-running review...
 | Color | 2 | - | - |
 | Components | 2 | Sharp corners | - |
 | Layout | 1 | Same-size metrics | Consider varying |
-| Motion | 1 | Basic hover | Could enhance |
+| Motion: Tokens | 2 | Using --duration-* tokens | - |
+| Motion: Reduced motion | 2 | Media query present | - |
+| Motion: Aesthetic fit | 1 | Mechanical easing applied | Could add stagger to metrics |
 
 ### Blocking Issues (Score = 0)
 None
