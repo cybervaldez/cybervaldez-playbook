@@ -74,6 +74,9 @@ See what a kickstarted project looks like. Browse the code to understand the sca
 | Project | Type | Description |
 |---------|------|-------------|
 | [playbook-react-cli-example](https://github.com/cybervaldez/playbook-react-cli-example) | `react-with-cli` | React + Vite + TypeScript scaffold with 14 AI skills installed |
+| [SLAP](https://github.com/cybervaldez/SLAP) | `react-with-cli` | Anti-slop design study & toolkit — interactive gallery of 8 UI archetypes with automated AI pattern detection |
+| [rive-lab](https://github.com/cybervaldez/rive-lab) | `react-with-cli` | Framework for testable, AI-verifiable animated apps combining XState state machines with Rive animations |
+| [promptyui](https://github.com/cybervaldez/promptyui) | `python-cli-with-webui` | Prompt templating system with Flask backend and web UI for generating content variations via wildcard substitution |
 
 ---
 
