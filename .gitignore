@@ -33,6 +33,7 @@ build/
 
 # Test artifacts
 tests/e2e-runs/
+tests/ux-review/
 /tmp/
 
 # Local configs

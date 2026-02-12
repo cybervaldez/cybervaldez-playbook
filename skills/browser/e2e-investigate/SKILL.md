@@ -100,6 +100,8 @@ Look for:
 > **Note:** Use screenshots as reference when live reproduction is not possible.
 > Prefer Step 2.1 (live debugging) when you can interact with the running server.
 
+> **Note on gitignored paths:** `{{TESTS_PATH}}/e2e-runs/` is gitignored to keep screenshots and logs out of version control, but they are still fully readable from disk. Always use the `Read` tool with the explicit file path to view screenshots — `.gitignore` only affects git, not filesystem access.
+
 **Server Logs:**
 ```bash
 # Check for exceptions and stack traces

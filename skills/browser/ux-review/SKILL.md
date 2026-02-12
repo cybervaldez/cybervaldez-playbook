@@ -330,21 +330,23 @@ New gap category that feeds into Step 5 (Gap Analysis) and Step 7 (Refer to /cre
 
 **CRITICAL**: Take screenshots to visually verify the implementation matches expected behavior.
 
+> **Note on gitignored paths:** `{{TESTS_PATH}}/ux-review/` is gitignored to keep screenshots out of version control, but they are still fully readable from disk. Always use the `Read` tool with the explicit file path to view saved screenshots — `.gitignore` only affects git, not filesystem access.
+
 #### 4.1 Capture Screenshots for Key States
 
 ```bash
 # Take screenshot of initial state
-agent-browser screenshot --path /tmp/ux-review-initial.png
+agent-browser screenshot --path {{TESTS_PATH}}/ux-review/ux-review-initial.png
 
 # Perform action
 agent-browser click "@action-button"
 sleep 1
 
 # Capture result state
-agent-browser screenshot --path /tmp/ux-review-after-action.png
+agent-browser screenshot --path {{TESTS_PATH}}/ux-review/ux-review-after-action.png
 
 # Capture dialog if expected
-agent-browser screenshot --path /tmp/ux-review-dialog.png
+agent-browser screenshot --path {{TESTS_PATH}}/ux-review/ux-review-dialog.png
 ```
 
 #### 4.2 Compare Against Expected Behavior
@@ -362,13 +364,13 @@ Using the screenshots, verify:
 #### 4.3 Screenshot Naming Convention
 
 ```
-/tmp/ux-review-{feature}-{state}.png
+{{TESTS_PATH}}/ux-review/ux-review-{feature}-{state}.png
 
 Examples:
-- /tmp/ux-review-stages-initial.png
-- /tmp/ux-review-stages-dropdown-removed.png
-- /tmp/ux-review-stages-worker-busy-dialog.png
-- /tmp/ux-review-stages-after-queue.png
+- {{TESTS_PATH}}/ux-review/ux-review-stages-initial.png
+- {{TESTS_PATH}}/ux-review/ux-review-stages-dropdown-removed.png
+- {{TESTS_PATH}}/ux-review/ux-review-stages-worker-busy-dialog.png
+- {{TESTS_PATH}}/ux-review/ux-review-stages-after-queue.png
 ```
 
 ### Step 5: UX Gap Analysis
@@ -558,8 +560,8 @@ Output findings using "As a user..." language, including implementation verifica
 - Build Stages section in sidebar (http://localhost:{{SERVER_PORT}})
 
 ### Screenshots Captured
-- `/tmp/ux-review-stages-initial.png` - Stages section without dropdown
-- `/tmp/ux-review-stages-worker-busy.png` - Confirmation dialog appearance
+- `{{TESTS_PATH}}/ux-review/ux-review-stages-initial.png` - Stages section without dropdown
+- `{{TESTS_PATH}}/ux-review/ux-review-stages-worker-busy.png` - Confirmation dialog appearance
 
 ### Implementation Verification
 
@@ -734,26 +736,26 @@ agent-browser close
 
 ```bash
 # Take full-page screenshot
-agent-browser screenshot --path /tmp/ux-review-full.png
+agent-browser screenshot --path {{TESTS_PATH}}/ux-review/ux-review-full.png
 
 # Take screenshot of specific element
-agent-browser screenshot --selector ".container" --path /tmp/ux-review-section.png
+agent-browser screenshot --selector ".container" --path {{TESTS_PATH}}/ux-review/ux-review-section.png
 
 # Capture before/after states
-agent-browser screenshot --path /tmp/ux-review-before.png
+agent-browser screenshot --path {{TESTS_PATH}}/ux-review/ux-review-before.png
 agent-browser click "@action-button"
 sleep 1
-agent-browser screenshot --path /tmp/ux-review-after.png
+agent-browser screenshot --path {{TESTS_PATH}}/ux-review/ux-review-after.png
 
 # Capture dialog/modal
 agent-browser click "@trigger-dialog"
 sleep 0.5
-agent-browser screenshot --path /tmp/ux-review-dialog.png
+agent-browser screenshot --path {{TESTS_PATH}}/ux-review/ux-review-dialog.png
 
 # Capture error state
 agent-browser eval "fetch('/api/invalid').catch(() => {})"
 sleep 1
-agent-browser screenshot --path /tmp/ux-review-error.png
+agent-browser screenshot --path {{TESTS_PATH}}/ux-review/ux-review-error.png
 ```
 
 ## UX Review Workflow Summary

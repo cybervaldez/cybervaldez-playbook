@@ -96,6 +96,8 @@ Full end-to-end test suite with visual verification via screenshots.
 
 ## Output Structure
 
+> **Note on gitignored paths:** `{{TESTS_PATH}}/e2e-runs/` is gitignored to keep screenshots and logs out of version control, but they are still fully readable from disk. Always use the `Read` tool with the explicit file path to view screenshots and reports — `.gitignore` only affects git, not filesystem access.
+
 ```
 {{TESTS_PATH}}/e2e-runs/
   {YYYYMMDD_HHMMSS}/
